@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 
 const Login = () => {
   const navigation = useNavigate()
+
   function toRegister() {
     navigation({
       pathname: "/register"
