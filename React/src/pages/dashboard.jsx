@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Navbar from '../components/navbar';
+import Footer from '../components/footer';
+import headerImg from '../assets/img/contoh_header.jpg';
 
 const Dashboard = () => {
     // State untuk data beasiswa
@@ -46,31 +47,60 @@ const Dashboard = () => {
             partner: 'partner',
             quota: 'quota',
             description: 'Lorem ipsum dolor sit.'
+        },
+        {
+            id: 7,
+            name: 'Lorem ipsum dolor sit amet',
+            partner: 'partner',
+            quota: 'quota',
+            description: 'Lorem ipsum dolor sit.'
+        },
+        {
+            id: 8,
+            name: 'Lorem ipsum dolor sit amet',
+            partner: 'partner',
+            quota: 'quota',
+            description: 'Lorem ipsum dolor sit.'
         }
     ]);
 
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar />
-
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}
-                <section className="relative bg-gray-200 p-8">
-                    <div className="container mx-auto">
-                        <h1 className="text-2xl font-bold mb-4">scholarship name</h1>
-                        <div className="flex space-x-4 mb-6">
-                            <span className="bg-white px-4 py-1 rounded">partner</span>
-                            <span className="bg-white px-4 py-1 rounded">quota</span>
-                            <span className="bg-white px-4 py-1 rounded">time limit</span>
-                        </div>
-                        <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                            Apply now
-                        </button>
-                        <div className="absolute bottom-4 right-8">
-                            <span>1/5</span>
+                <section className="relative bg-gray-700 p-0 h-[500px] overflow-hidden rounded-lg">
+                    {/* Background Image with Overlay */}
+                    <div className="absolute inset-0">
+                        <img
+                            src={headerImg}
+                            alt="Scholarship Featured"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                    </div>
+
+                    {/* Content positioned at bottom left */}
+                    <div className="absolute bottom-0 left-0 p-8 w-full">
+                        <div className="container mx-auto">
+                            <h1 className="text-3xl font-bold mb-4 text-white">scholarship name</h1>
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                <span className="bg-white px-4 py-1 rounded text-gray-800">partner</span>
+                                <span className="bg-white px-4 py-1 rounded text-gray-800">quota</span>
+                                <span className="bg-white px-4 py-1 rounded text-gray-800">time limit</span>
+                            </div>
+                            <button className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-colors">
+                                Apply now
+                            </button>
                         </div>
                     </div>
+
+                    {/* Pagination indicator */}
+                    <div className="absolute bottom-4 right-8">
+                        <span className="bg-white bg-opacity-50 px-3 py-1 rounded-full text-sm">1/5</span>
+                    </div>
                 </section>
+
 
                 {/* Scholarship Grid Section */}
                 <section className="container mx-auto p-6">
