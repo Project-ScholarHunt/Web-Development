@@ -1,5 +1,5 @@
 import React from 'react'
-import loginImg from '../assets/img/login.jpg'
+import loginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router'
 
 const Login = () => {
@@ -37,7 +37,7 @@ const Login = () => {
               className='border border-blue-500 p-2 rounded  hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>Signup</button>
           </div>
           <div>
-            <img src={loginImg} alt="" className='w-[200px] h-[100px] sm:w-[300px] sm:h-auto object-contain' />
+            <img src={loginImg} alt="" className="w-50 sm:w-60 md:w-75 max-w-[350px] h-auto object-contain mx-auto" />
           </div>
         </div>
       </div>
