@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import Login from './pages/Login.jsx'
 import Register from './pages/register.jsx'
 import Dashboard from './pages/dashboard.jsx'
-
+import Notfound from './pages/notfound.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -15,6 +15,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='*' element={<Notfound/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
