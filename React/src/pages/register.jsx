@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import loginImg from '../assets/img/login.jpg'
 import { useNavigate } from 'react-router'
 
@@ -9,19 +9,58 @@ const Register = () => {
       pathname: "/login"
     })
   }
+
+  const [formData, setFormData] = useState({})
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      console.log("executed 1")
+      const response = await fetch('http://127.0.0.1:8000/api/students/register', {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      console.log("executed 2 ")
+
+      if (!response.ok) {
+        throw new Error('Something went wrong!')
+      }
+      const data = await response.json();
+      console.log('Success: ', data);
+
+      alert('Email sent successfully!');
+      setFormData({});
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  const handleChange = (e) => {
+    const obj = e.target.name;
+    const value = e.target.value;
+    setFormData(values => ({ ...values, [obj]: value }))
+  }
+
   return (
     <div className='flex items-center justify-center min-h-screen pt-12 sm:pt-0'>
       <div className='mx-auto container my-5 grid grid-cols-1'>
         <h1 className='text-blue-500 font-bold text-5xl mx-4 -translate-y-10 text-center sm:text-left'>Register</h1>
         <div className='flex flex-col-reverse sm:flex-row items-center justify-between p-5 flex-wrap'>
           <div className='w-full flex flex-col gap-2 sm:w-[40%] md:w-[30%] p-10 sm:p-0'>
-            <form action="" className='flex flex-col gap-5'>
+            <form action="" className='flex flex-col gap-5' onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder='name'
                 name="name"
                 id="name"
                 className='focus:outline-blue-500 p-2 rounded border'
+                value={formData.name || ""}
+                onChange={handleChange}
               />
               <input
                 type="email"
@@ -29,6 +68,8 @@ const Register = () => {
                 name="email"
                 id="email"
                 className='focus:outline-blue-500 p-2 rounded border'
+                value={formData.email || ""}
+                onChange={handleChange}
               />
               <input
                 type="password"
@@ -36,6 +77,8 @@ const Register = () => {
                 name="password"
                 id="password"
                 className='focus:outline-blue-500 p-2 rounded border'
+                value={formData.password || ""}
+                onChange={handleChange}
               />
               <div className='flex flex-row gap-3 items-center w-full'>
                 <label htmlFor="phone">+62</label>
@@ -45,6 +88,8 @@ const Register = () => {
                   name="phone"
                   id="phone"
                   className='focus:outline-blue-500 p-2 rounded border w-full'
+                  value={formData.phone || ""}
+                onChange={handleChange}
                 />
               </div>
               <button
