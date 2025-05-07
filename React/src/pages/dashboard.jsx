@@ -69,7 +69,7 @@ const Dashboard = () => {
             <Navbar />
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}
-                <section className="relative bg-gray-700 p-0 h-[500px] overflow-hidden rounded-lg">
+                <section className="relative bg-gray-700 p-0 h-[80vh] overflow-hidden rounded-lg">
                     {/* Background Image with Overlay */}
                     <div className="absolute inset-0">
                         <img
