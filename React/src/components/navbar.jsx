@@ -20,7 +20,7 @@ const Navbar = () => {
 
                     {/* Search Bar */}
                     <div className="flex-1 max-w-md mx-8">
-                        <div className="relative bg-">
+                        <div className="relative">
                             <input
                                 type="text"
                                 placeholder="Search scholarship"

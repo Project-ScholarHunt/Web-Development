@@ -65,7 +65,7 @@ const Dashboard = () => {
     ]);
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-blue-200">
             <Navbar />
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}
@@ -81,8 +81,8 @@ const Dashboard = () => {
                     </div>
 
                     {/* Content positioned at bottom left */}
-                    <div className="absolute bottom-0 left-0 p-8 w-full">
-                        <div className="container mx-auto">
+                    <div className="absolute bottom-10 p-2 w-full">
+                        <div className="container mx-[2vw]">
                             <h1 className="text-3xl font-bold mb-4 text-white">scholarship name</h1>
                             <div className="flex flex-wrap gap-2 mb-6">
                                 <span className="bg-white px-4 py-1 rounded text-gray-800">partner</span>
@@ -96,7 +96,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Pagination indicator */}
-                    <div className="absolute bottom-4 right-8">
+                    <div className="absolute bottom-15 right-[3vw]">
                         <span className="bg-white bg-opacity-50 px-3 py-1 rounded-full text-sm">1/5</span>
                     </div>
                 </section>
@@ -111,12 +111,12 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {scholarships.map((scholarship) => (
                             <div key={scholarship.id} className="bg-gray-200 rounded">
-                                <div className="h-40 bg-gray-300 flex items-center justify-center">
+                                <div className="h-40 bg-white flex items-center justify-center">
                                     <div className="w-24 h-24 border border-gray-500 flex items-center justify-center">
                                         X
                                     </div>
                                 </div>
-                                <div className="p-4">
+                                <div className="p-4 bg-sky-300">
                                     <h3 className="font-medium text-lg">{scholarship.name}</h3>
                                     <p className="text-sm text-gray-600 mb-1">
                                         {scholarship.partner} - {scholarship.quota}
