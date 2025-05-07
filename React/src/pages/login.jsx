@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import loginImg from '../assets/img/login.jpg'
+import loginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router'
 
 const Login = () => {
