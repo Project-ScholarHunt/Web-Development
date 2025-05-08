@@ -137,8 +137,8 @@ const ScholarshipDashboard = () => {
             {/* Mobile Header with Menu Button */}
             <div className="bg-white p-4 flex items-center justify-between md:hidden shadow-md">
                 <h2 className="text-xl font-bold">Admin Portal</h2>
-                <button 
-                    onClick={toggleMobileMenu} 
+                <button
+                    onClick={toggleMobileMenu}
                     className="p-2 rounded bg-gray-100 hover:bg-gray-200"
                 >
                     {isMobileMenuOpen ? 'Close' : 'Menu'}
@@ -349,11 +349,10 @@ const ScholarshipDashboard = () => {
                                         <td className="p-2 hidden md:table-cell">{item.quota}</td>
                                         <td className="p-2 hidden md:table-cell">{item.timeLimit}</td>
                                         <td className="p-2">
-                                            <span className={`inline-block px-2 py-1 rounded text-xs ${
-                                                item.status === 'active' ? 'bg-green-100 text-green-800' :
-                                                item.status === 'inactive' ? 'bg-red-100 text-red-800' :
-                                                'bg-yellow-100 text-yellow-800'
-                                            }`}>
+                                            <span className={`inline-block px-2 py-1 rounded text-xs ${item.status === 'active' ? 'bg-green-100 text-green-800' :
+                                                    item.status === 'inactive' ? 'bg-red-100 text-red-800' :
+                                                        'bg-yellow-100 text-yellow-800'
+                                                }`}>
                                                 {item.status}
                                             </span>
                                         </td>
