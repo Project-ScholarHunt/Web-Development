@@ -31,25 +31,46 @@ class StudentsController extends Controller
         return response()->json(['message' => 'Registered & logged in', 'students' => $student]);
     }
 
+    // public function login(Request $request)
+    // {
+    //     Log::info($request->all());
+
+    //     $credentials = $request->validate([
+    //         'email'    => 'required|email',
+    //         'password' => 'required',
+    //     ]);
+
+    //     Log::info($credentials);
+
+    //     if (Auth::guard('students')->attempt($credentials)) {
+    //         $request->session()->regenerate();
+    //         return response()->json(['message' => 'Login successful']);
+    //     }
+
+    //     return response()->json(['message' => 'Invalid credentials'], 401);
+    // }
+
     public function login(Request $request)
     {
-        Log::info($request->all());
-
-        $credentials = $request->validate([
+        $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
         ]);
 
-        Log::info($credentials);
+        $student = Students::where('email', $request->email)->first();
 
-        if (Auth::guard('students')->attempt($credentials)) {
-            $request->session()->regenerate();
-            return response()->json(['message' => 'Login successful']);
+        if (!$student || !Hash::check($request->password, $student->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
+        $token = $student->createToken('student-token')->plainTextToken;
 
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'student' => $student
+        ]);
+    }
     public function logout(Request $request)
     {
         Auth::guard('student')->logout();

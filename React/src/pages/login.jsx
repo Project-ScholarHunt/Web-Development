@@ -16,7 +16,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      console.log("executed 1")
+      console.log("Sending Request...")
       const response = await fetch('http://127.0.0.1:8000/api/students/login', {
         method: 'POST',
         headers: {
@@ -25,18 +25,20 @@ const Login = () => {
         },
         body: JSON.stringify(formData)
       });
-      console.log("executed 2 ")
+      console.log("HTTP status:", response.status);
+
+      const data = await response.json();
+      console.log('Response JSON:', data);
 
       if (!response.ok) {
-        throw new Error('Something went wrong!')
+        console.warn('API returned error status:', data);
+        throw new Error(data.message || 'Something went wrong!');
       }
-      const data = await response.json();
-      console.log('Success: ', data);
 
-      alert('Email sent successfully!');
+      alert('Login success!');
       setFormData({});
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Catch error:', error.message);
     }
   }
 
