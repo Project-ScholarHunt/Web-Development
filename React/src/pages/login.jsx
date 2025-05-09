@@ -54,7 +54,7 @@ const Login = () => {
         <h1 className='text-blue-500 font-bold text-5xl mx-4 -translate-y-10 text-center sm:text-left'>Login</h1>
         <div className='flex flex-col-reverse sm:flex-row items-center justify-between p-5 flex-wrap'>
           <div className='w-full flex flex-col gap-2 sm:w-[40%] md:w-[30%] p-10 sm:p-0'>
-            <form action="" className='flex flex-col gap-5' onSubmit={handleSubmit}>
+             <form action="" className='flex flex-col gap-5' onSubmit={handleSubmit}>
               <input
                 type="email"
                 placeholder='email'
