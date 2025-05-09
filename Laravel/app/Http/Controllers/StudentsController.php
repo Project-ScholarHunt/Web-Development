@@ -31,25 +31,6 @@ class StudentsController extends Controller
         return response()->json(['message' => 'Registered & logged in', 'students' => $student]);
     }
 
-    // public function login(Request $request)
-    // {
-    //     Log::info($request->all());
-
-    //     $credentials = $request->validate([
-    //         'email'    => 'required|email',
-    //         'password' => 'required',
-    //     ]);
-
-    //     Log::info($credentials);
-
-    //     if (Auth::guard('students')->attempt($credentials)) {
-    //         $request->session()->regenerate();
-    //         return response()->json(['message' => 'Login successful']);
-    //     }
-
-    //     return response()->json(['message' => 'Invalid credentials'], 401);
-    // }
-
     public function login(Request $request)
     {
         $request->validate([

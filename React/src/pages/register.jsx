@@ -1,14 +1,36 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import loginImg from '../assets/img/login.png'
-import { useNavigate } from 'react-router'
+import { useNavigate, Link } from 'react-router'
 
 const Register = () => {
   const navigation = useNavigate()
-  function toLogin() {
-    navigation({
-      pathname: "/login"
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || ""
+    if (!token) return;
+
+    fetch("http://127.0.0.1:8000/api/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
     })
-  }
+      .then((res) => {
+        if (!res.ok) throw new Error("Invalid token");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Token valid, redirecting to dashboard");
+        navigation({
+          pathname: "/dashboard"
+        });
+      })
+      .catch((err) => {
+        console.warn("Token invalid or expired");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+      });
+  }, []);
 
   const [formData, setFormData] = useState({})
 
@@ -94,11 +116,15 @@ const Register = () => {
               </div>
               <button
                 type="submit"
-                className='bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white p-2 tracking-wider rounded mt-5'>Login</button>
+                className='bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white p-2 tracking-wider rounded mt-5'>
+                  Sign up
+              </button>
             </form>
-            <button
-              onClick={toLogin}
-              className='border border-blue-500 p-2 rounded hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>Signup</button>
+            <Link
+              to="/login"
+              className='border border-blue-500 p-2 rounded text-center hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>
+                Go to Login Page
+            </Link>
           </div>
           <div>
             <img src={loginImg} alt="" className="w-50 sm:w-60 md:w-75 max-w-[350px] h-auto object-contain mx-auto" />
