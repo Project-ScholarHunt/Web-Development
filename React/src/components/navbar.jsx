@@ -11,16 +11,16 @@ const Navbar = () => {
 
     return (
         <div className="absolute w-full px-5 top-7 z-50">
-            <nav className="relative bg-blue-200 py-4 px-5 rounded-lg shadow-md w-full">
+            <nav className="relative bg-blue-200 py-4 px-5 rounded-2xl shadow-md w-full">
                 <div className="flex flex-row items-center justify-between w-full">
 
                     {/* Logo - Always visible */}
                     <div className="flex items-center">
-                        <Link to="/" className="flex items-center h-[4vh]">
+                        <Link to="/" className="flex items-center h-[3vh]">
                             <img
                                 src={NavbarPNG}
                                 alt="logo scholarhunt"
-                                className="max-h-[50px]"
+                                className="max-h-[45px]"
                             />
                         </Link>
                     </div>
