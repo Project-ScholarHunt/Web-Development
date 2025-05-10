@@ -7,7 +7,6 @@ import Dashboard from './pages/dashboard.jsx'
 import Notfound from './pages/notfound.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import Scholarships from './pages/scholarships.jsx'
-import DetailScholarship from './pages/DetailScholarship.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,7 +19,6 @@ createRoot(document.getElementById('root')).render(
         <Route path='*' element={<Notfound />} />
         <Route path='/admindashboard' element={<AdminDashboard />} />
         <Route path='/scholarships' element={<Scholarships />} />
-        <Route path='/scholarships/:id' element={<DetailScholarship />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
