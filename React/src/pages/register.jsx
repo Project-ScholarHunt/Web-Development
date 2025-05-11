@@ -17,7 +17,7 @@ const Register = () => {
 
     try {
       console.log("executed 1")
-      const response = await fetch('http://127.0.0.1:8000/api/students/register', {
+      const response = await fetch('http://127.0.0.1:8000/api/users/register', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
@@ -89,7 +89,7 @@ const Register = () => {
                   id="phone"
                   className='focus:outline-blue-500 p-2 rounded border w-full'
                   value={formData.phone || ""}
-                onChange={handleChange}
+                  onChange={handleChange}
                 />
               </div>
               <button

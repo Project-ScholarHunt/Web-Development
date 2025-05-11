@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       console.log("Sending Request...")
-      const response = await fetch('http://127.0.0.1:8000/api/students/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
