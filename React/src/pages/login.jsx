@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import loginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router'
 
@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       console.log("Sending Request...")
-      const response = await fetch('http://127.0.0.1:8000/api/students/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
@@ -35,6 +35,10 @@ const Login = () => {
         throw new Error(data.message || 'Something went wrong!');
       }
 
+      localStorage.setItem("token", data.token);
+      setToken(data.token)
+      localStorage.setItem("user", JSON.stringify(data.student));
+
       alert('Login success!');
       setFormData({});
     } catch (error) {
@@ -47,6 +51,35 @@ const Login = () => {
     const value = e.target.value;
     setFormData(values => ({ ...values, [obj]: value }))
   }
+
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+
+
+  useEffect(() => {
+    if (!token) return;
+
+    fetch("http://127.0.0.1:8000/api/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Invalid token");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Token valid, redirecting to dashboard");
+        navigation({
+          pathname: "/dashboard"
+        });
+      })
+      .catch((err) => {
+        console.warn("Token invalid or expired");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+      });
+  }, [token]);
 
   return (
     <div className='flex items-center justify-center min-h-screen'>
@@ -77,7 +110,7 @@ const Login = () => {
             </form>
             <button
               onClick={toRegister}
-              className='border border-blue-500 p-2 rounded  hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>Signup</button>
+              className='border border-blue-500 p-2 rounded  hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>Create an Account</button>
           </div>
           <div>
             <img src={loginImg} alt="" className="w-50 sm:w-60 md:w-75 max-w-[350px] h-auto object-contain mx-auto" />
