@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ScholarshipsController;
 
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
@@ -19,3 +20,9 @@ Route::prefix('admin')->group(function () {
 Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
     return response()->json($request->user());
 });
+
+// Route untuk CRUD Scholarship
+Route::apiResource('scholarships', ScholarshipsController::class);
+
+// Route tambahan jika diperlukan untuk pencarian
+Route::get('scholarships/search/{term}', [ScholarshipsController::class, 'search']);

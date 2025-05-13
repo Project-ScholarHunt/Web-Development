@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import CrudScholarshipForm from '../components/CrudScholarshipForm';
 import CrudScholarshipTable from '../components/CrudScholarshipTable';
+import axios from 'axios'; // Pastikan axios sudah diinstal (npm install axios)
+
+const API_URL = "http://127.0.0.1:8000/api"; // Sesuaikan dengan URL Laravel Anda
 
 const AdminDashboard = () => {
-    // Sample data - replace with your API call
     const [items, setItems] = useState([]);
     const [formData, setFormData] = useState({
         id: '',
@@ -21,38 +23,27 @@ const AdminDashboard = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Fetch data - replace with API call
+    // Fetch data from API
     useEffect(() => {
-        // Simulating API call
-        const sampleData = [
-            {
-                id: 1,
-                scholarshipName: "Engineering Excellence Scholarship",
-                partner: "Tech Solutions Inc",
-                description: "Scholarship for outstanding engineering students",
-                termsAndConditions: "Must maintain 3.5 GPA",
-                quota: 50,
-                timeLimit: "6 months",
-                logo: "tech-logo.png",
-                thumbnail: "tech-thumbnail.jpg",
-                status: "active"
-            },
-            {
-                id: 2,
-                scholarshipName: "Business Leaders of Tomorrow",
-                partner: "Global Business Association",
-                description: "Supporting future business leaders",
-                termsAndConditions: "Must participate in leadership program",
-                quota: 25,
-                timeLimit: "1 year",
-                logo: "business-logo.png",
-                thumbnail: "business-thumbnail.jpg",
-                status: "active"
-            }
-        ];
-        setItems(sampleData);
+        fetchScholarships();
     }, []);
+
+    const fetchScholarships = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`${API_URL}/scholarships`);
+            setItems(response.data);
+        } catch (err) {
+            console.error("Error fetching scholarships:", err);
+            setError("Failed to load scholarships. Please try again later.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Handle form input changes
     const handleInputChange = (e) => {
@@ -67,25 +58,92 @@ const AdminDashboard = () => {
     const handleFileChange = (e) => {
         const { name, files } = e.target;
         if (files.length > 0) {
-            // In a real app, you'd upload the file and get a URL
+            // Store the actual file object for later upload
             setFormData({
                 ...formData,
-                [name]: files[0].name // Placeholder, would be a URL in production
+                [name]: files[0] // Store the file object instead of just the name
             });
         }
     };
 
     // Submit form
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isEditing) {
-            // Update existing item
-            setItems(items.map(item => item.id === formData.id ? formData : item));
-        } else {
-            // Add new item
-            setItems([...items, { ...formData, id: Date.now() }]);
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            // Create FormData object for file upload
+            const formDataToSend = new FormData();
+            formDataToSend.append('scholarshipName', formData.scholarshipName);
+            formDataToSend.append('partner', formData.partner);
+            formDataToSend.append('description', formData.description);
+            formDataToSend.append('termsAndConditions', formData.termsAndConditions);
+            formDataToSend.append('quota', formData.quota);
+            formDataToSend.append('timeLimit', formData.timeLimit);
+            
+            // Check if logo is a File object (for new/changed file)
+            if (formData.logo instanceof File) {
+                formDataToSend.append('logo', formData.logo);
+            }
+            
+            // Check if thumbnail is a File object (for new/changed file)
+            if (formData.thumbnail instanceof File) {
+                formDataToSend.append('thumbnail', formData.thumbnail);
+            }
+            
+            let response;
+            
+            if (isEditing) {
+                // Update existing item - Using POST with _method=PUT for FormData
+                formDataToSend.append('_method', 'PUT');
+                response = await axios.post(
+                    `${API_URL}/scholarships/${formData.id}`, 
+                    formDataToSend,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+                setItems(items.map(item => item.id === formData.id ? response.data : item));
+            } else {
+                // Add new item
+                response = await axios.post(
+                    `${API_URL}/scholarships`, 
+                    formDataToSend,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+                setItems([...items, response.data]);
+            }
+            
+            resetForm();
+        } catch (err) {
+            console.error("Error submitting form:", err);
+            if (err.response) {
+                // Tampilkan pesan error API secara detail
+                console.log("Response status:", err.response.status);
+                console.log("Response data:", err.response.data);
+                if (err.response.data.errors) {
+                    // Error validasi dari backend
+                    setError(Object.values(err.response.data.errors).flat().join(", "));
+                } else if (err.response.data.error) {
+                    setError(err.response.data.error);
+                } else {
+                    setError("Server error: " + err.response.status);
+                }
+            } else if (err.request) {
+                setError("No response from server. Please check your backend connection.");
+            } else {
+                setError("Error: " + err.message);
+            }
+        } finally {
+            setIsLoading(false);
         }
-        resetForm();
     };
 
     // Edit an item
@@ -100,9 +158,20 @@ const AdminDashboard = () => {
     };
 
     // Delete an item
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this scholarship?')) {
-            setItems(items.filter(item => item.id !== id));
+            setIsLoading(true);
+            setError(null);
+            
+            try {
+                await axios.delete(`${API_URL}/scholarships/${id}`);
+                setItems(items.filter(item => item.id !== id));
+            } catch (err) {
+                console.error("Error deleting scholarship:", err);
+                setError("Failed to delete scholarship. Please try again later.");
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -125,8 +194,8 @@ const AdminDashboard = () => {
 
     // Filter items based on search term
     const filteredItems = items.filter(item =>
-        item.scholarshipName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.partner.toLowerCase().includes(searchTerm.toLowerCase())
+        item.scholarshipName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.partner?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Toggle mobile menu
@@ -143,7 +212,7 @@ const AdminDashboard = () => {
                     onClick={toggleMobileMenu}
                     className="p-2 rounded bg-gray-100 hover:bg-gray-200"
                 >
-                    {isMobileMenuOpen ? <i class="ri-close-large-fill text-xl"></i> : <i class="ri-dashboard-horizontal-line text-xl"></i>}
+                    {isMobileMenuOpen ? <i className="ri-close-large-fill text-xl"></i> : <i className="ri-dashboard-horizontal-line text-xl"></i>}
                 </button>
             </div>
 
@@ -153,6 +222,21 @@ const AdminDashboard = () => {
             {/* Main Content */}
             <main className="flex-1 p-4 md:p-6">
                 <h1 className="text-2xl font-semibold mb-4">Manage Scholarships</h1>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                        <p>{error}</p>
+                    </div>
+                )}
+
+                {/* Loading Indicator */}
+                {isLoading && (
+                    <div className="text-center my-4">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+                        <p className="mt-2">Loading...</p>
+                    </div>
+                )}
 
                 {/* Search Bar */}
                 <div className="mb-6">
@@ -172,12 +256,14 @@ const AdminDashboard = () => {
                     handleSubmit={handleSubmit}
                     resetForm={resetForm}
                     isEditing={isEditing}
+                    isLoading={isLoading}
                 />
 
                 <CrudScholarshipTable
                     items={filteredItems}
                     handleEdit={handleEdit}
                     handleDelete={handleDelete}
+                    isLoading={isLoading}
                 />
             </main>
         </div>
