@@ -4,6 +4,12 @@ import Footer from '../components/footer';
 
 const Apply = () => {
   const [activeTab, setActiveTab] = useState(1);
+  // State untuk melacak status dokumen
+  const [documents, setDocuments] = useState({
+    recommendation_letter: null,
+    statement_letter: null,
+    grade_transcript: null
+  });
 
   const nextTab = () => {
     if (activeTab < 3) setActiveTab(activeTab + 1);
@@ -11,6 +17,24 @@ const Apply = () => {
 
   const prevTab = () => {
     if (activeTab > 1) setActiveTab(activeTab - 1);
+  };
+
+  // Fungsi untuk menghandle file upload
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files.length > 0) {
+      setDocuments(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    }
+  };
+
+  // Check apakah semua dokumen sudah diupload
+  const allDocumentsUploaded = () => {
+    return documents.recommendation_letter &&
+      documents.statement_letter &&
+      documents.grade_transcript;
   };
 
   return (
@@ -21,7 +45,7 @@ const Apply = () => {
 
           <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold mb-6">Scholarship Registration Form</h2>
-            
+
             {/* Steps Indicator */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
@@ -172,14 +196,24 @@ const Apply = () => {
                       htmlFor="recommendation_letter"
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-md cursor-pointer hover:border-blue-500 transition-colors text-gray-500 text-center p-4"
                     >
-                      <i className="ri-file-text-line text-3xl mb-2"></i>
-                      <span className="text-sm">Click or drag your file here</span>
+                      {documents.recommendation_letter ? (
+                        <div className="text-green-500">
+                          <i className="ri-check-line text-3xl mb-2"></i>
+                          <span className="text-sm">{documents.recommendation_letter.name}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <i className="ri-file-text-line text-3xl mb-2"></i>
+                          <span className="text-sm">Click or drag your file here</span>
+                        </>
+                      )}
                       <input
                         id="recommendation_letter"
                         type="file"
                         name="recommendation_letter"
                         className="hidden"
                         required
+                        onChange={handleFileChange}
                       />
                     </label>
                   </div>
@@ -198,14 +232,24 @@ const Apply = () => {
                       htmlFor="statement_letter"
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-md cursor-pointer hover:border-blue-500 transition-colors text-gray-500 text-center p-4"
                     >
-                      <i className="ri-file-text-line text-3xl mb-2"></i>
-                      <span className="text-sm">Click or drag your file here</span>
+                      {documents.statement_letter ? (
+                        <div className="text-green-500">
+                          <i className="ri-check-line text-3xl mb-2"></i>
+                          <span className="text-sm">{documents.statement_letter.name}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <i className="ri-file-text-line text-3xl mb-2"></i>
+                          <span className="text-sm">Click or drag your file here</span>
+                        </>
+                      )}
                       <input
                         id="statement_letter"
                         type="file"
                         name="statement_letter"
                         className="hidden"
                         required
+                        onChange={handleFileChange}
                       />
                     </label>
                   </div>
@@ -216,14 +260,24 @@ const Apply = () => {
                       htmlFor="grade_transcript"
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-md cursor-pointer hover:border-blue-500 transition-colors text-gray-500 text-center p-4"
                     >
-                      <i className="ri-file-text-line text-3xl mb-2"></i>
-                      <span className="text-sm">Click or drag your file here</span>
+                      {documents.grade_transcript ? (
+                        <div className="text-green-500">
+                          <i className="ri-check-line text-3xl mb-2"></i>
+                          <span className="text-sm">{documents.grade_transcript.name}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <i className="ri-file-text-line text-3xl mb-2"></i>
+                          <span className="text-sm">Click or drag your file here</span>
+                        </>
+                      )}
                       <input
                         id="grade_transcript"
                         type="file"
                         name="grade_transcript"
                         className="hidden"
                         required
+                        onChange={handleFileChange}
                       />
                     </label>
                   </div>
@@ -238,7 +292,11 @@ const Apply = () => {
                     </button>
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                      disabled={!allDocumentsUploaded()}
+                      className={`${allDocumentsUploaded()
+                          ? "bg-blue-600 hover:bg-blue-700"
+                          : "bg-blue-600/50 cursor-not-allowed"
+                        } text-white px-6 py-2 rounded transition-all`}
                     >
                       Submit Application
                     </button>
