@@ -30,10 +30,10 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-gray-700 py-6 md:py-8 text-white relative">
+    <footer className="bg-gray-700 py-6 md:py-4 text-white relative">
       <div className="container mx-auto px-4">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-4 mb-3">
 
           {/* Left Column: Quick Links */}
           <div className="text-center sm:text-left">

@@ -46,7 +46,7 @@ const Dashboard = () => {
     ]);
 
     return (
-        <div className="min-h-screen flex flex-col bg-blue-200">
+        <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
             <Navbar />
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}

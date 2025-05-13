@@ -11,7 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        
+        // Schema::table('applicants', function (Blueprint $table) {
+        //     $table->dropForeign(['student_id']);
+        // });
+
+        // Schema::table('scholarships', function (Blueprint $table) {
+        //     $table->dropForeign(['admin_id']);
+        // });
+
+        // Schema::dropIfExists('students');
+        // Schema::dropIfExists('admins');
     }
 
     /**
