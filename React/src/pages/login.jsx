@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import loginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router'
 
@@ -12,18 +12,23 @@ const Login = () => {
     })
   }
 
+  useEffect(() => {
+    console.log(document.cookie)
+  })
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       console.log("Sending Request...")
-      const response = await fetch('http://127.0.0.1:8000/api/users/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/login', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        credentials: 'include',
       });
       console.log("HTTP status:", response.status);
 
@@ -35,12 +40,11 @@ const Login = () => {
         throw new Error(data.message || 'Something went wrong!');
       }
 
-      localStorage.setItem("token", data.token);
-      setToken(data.token)
-      localStorage.setItem("user", JSON.stringify(data.student));
-
       alert('Login success!');
       setFormData({});
+      navigation({
+        pathname: "/dashboard"
+      })
     } catch (error) {
       console.error('Catch error:', error.message);
     }
@@ -51,35 +55,6 @@ const Login = () => {
     const value = e.target.value;
     setFormData(values => ({ ...values, [obj]: value }))
   }
-
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-
-
-  useEffect(() => {
-    if (!token) return;
-
-    fetch("http://127.0.0.1:8000/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Invalid token");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Token valid, redirecting to dashboard");
-        navigation({
-          pathname: "/dashboard"
-        });
-      })
-      .catch((err) => {
-        console.warn("Token invalid or expired");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-      });
-  }, [token]);
 
   return (
     <div className='flex items-center justify-center min-h-screen'>

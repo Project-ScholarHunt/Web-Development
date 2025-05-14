@@ -3,43 +3,13 @@ import loginImg from '../assets/img/login.png'
 import { useNavigate, Link } from 'react-router'
 
 const Register = () => {
-  const navigation = useNavigate()
-
-  useEffect(() => {
-    const token = localStorage.getItem("token") || ""
-    if (!token) return;
-
-    fetch("http://127.0.0.1:8000/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Invalid token");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Token valid, redirecting to dashboard");
-        navigation({
-          pathname: "/dashboard"
-        });
-      })
-      .catch((err) => {
-        console.warn("Token invalid or expired");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-      });
-  }, []);
-
   const [formData, setFormData] = useState({})
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      console.log("executed 1")
-      const response = await fetch('http://127.0.0.1:8000/api/users/register', {
+      const response = await fetch('http://127.0.0.1:8000/api/register', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',
@@ -47,14 +17,12 @@ const Register = () => {
         },
         body: JSON.stringify(formData)
       });
-      console.log("executed 2 ")
 
       if (!response.ok) {
         throw new Error('Something went wrong!')
       }
       const data = await response.json();
       console.log('Success: ', data);
-
       alert('Email sent successfully!');
       setFormData({});
     } catch (error) {

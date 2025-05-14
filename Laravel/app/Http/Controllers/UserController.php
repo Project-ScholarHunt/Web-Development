@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
-    public function registerUser(Request $request)
+    public function register(Request $request)
     {
         $request->validate([
             'name'     => 'required|string|max:255',
@@ -26,98 +27,43 @@ class UserController extends Controller
             'is_admin' => 0,
         ]);
 
-        Auth::login($user);
+        $token = JWTAuth::fromUser($user);
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user
+            'user'    => $user,
+            'token'   => $token
         ], 201);
     }
 
-    public function registerAdmin(Request $request)
+    public function login(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'phone'    => 'nullable|string|max:20',
-        ]);
+        $credentials = $request->only('email', 'password');
+        $token = JWTAuth::attempt($credentials);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-            'is_admin' => 1,
-        ]);
-
-        Auth::login($user);
-
-        return response()->json(['message' => 'Admin registered & logged in', 'user' => $user]);
-    }
-
-    public function loginUser(Request $request)
-    {
-        $request->validate([
-            'email'     => 'required|email',
-            'password'  => 'required',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$token) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        if ($user->is_admin === 1) {
-            return response()->json(['message' => 'Please use admin login page'], 403);
-        }
+        $user = JWTAuth::user();
 
-        $token = $user->createToken('user-token')->plainTextToken;
+        $customClaims = ['is_admin' => $user->is_admin];
+
+        $token = JWTAuth::claims($customClaims)->fromUser($user);
 
         return response()->json([
             'message' => 'User login successful',
-            'token' => $token,
-            'user' => $user
-        ]);
+        ])->cookie('token', $token, 60 * 24, '/', null, true, false, false, 'None');
     }
 
-    public function loginAdmin(Request $request)
+    public function logout()
     {
-        $request->validate([
-            'email'     => 'required|email',
-            'password'  => 'required',
-        ]);
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['error' => 'Failed to logout, token invalid'], 500);
         }
-
-        if ((int)$user->is_admin !== 1) {
-            return response()->json(['message' => 'Access denied. Not an admin account.'], 403);
-        }
-
-        $token = $user->createToken('admin-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Admin login successful',
-            'token' => $token,
-            'user' => $user
-        ]);
-    }
-
-    public function logout(Request $request)
-    {
-        if ($request->user()) {
-            $request->user()->currentAccessToken()->delete();
-        }
-
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json(['message' => 'Logged out']);
     }
 }

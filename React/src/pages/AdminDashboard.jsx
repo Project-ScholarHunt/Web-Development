@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import CrudScholarshipForm from '../components/CrudScholarshipForm';
 import CrudScholarshipTable from '../components/CrudScholarshipTable';
+import { useNavigate } from 'react-router';
 
 const AdminDashboard = () => {
     // Sample data - replace with your API call
@@ -21,38 +22,33 @@ const AdminDashboard = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [authorized, setAuthorized] = useState(false);
+    const navigate = useNavigate();
 
-    // Fetch data - replace with API call
     useEffect(() => {
-        // Simulating API call
-        const sampleData = [
-            {
-                id: 1,
-                scholarshipName: "Engineering Excellence Scholarship",
-                partner: "Tech Solutions Inc",
-                description: "Scholarship for outstanding engineering students",
-                termsAndConditions: "Must maintain 3.5 GPA",
-                quota: 50,
-                timeLimit: "6 months",
-                logo: "tech-logo.png",
-                thumbnail: "tech-thumbnail.jpg",
-                status: "active"
-            },
-            {
-                id: 2,
-                scholarshipName: "Business Leaders of Tomorrow",
-                partner: "Global Business Association",
-                description: "Supporting future business leaders",
-                termsAndConditions: "Must participate in leadership program",
-                quota: 25,
-                timeLimit: "1 year",
-                logo: "business-logo.png",
-                thumbnail: "business-thumbnail.jpg",
-                status: "active"
+        const checkAdmin = async () => {
+            try {
+                const response = await fetch('http:127.0.0.1:8000/api/check-admin', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    setAuthorized(true);
+                    console.log("Authorization success")
+                    console.log(document.cookie)
+                } else {
+                    setAuthorized(false);
+                    navigate("/NotFound")
+                }
+            } catch (error) {
+                console.error('Error checking admin:', error);
             }
-        ];
-        setItems(sampleData);
+        }
+        checkAdmin();
     }, []);
+
+
 
     // Handle form input changes
     const handleInputChange = (e) => {
@@ -106,6 +102,24 @@ const AdminDashboard = () => {
         }
     };
 
+    function handleLogout() {
+        fetch('http://127.0.0.1:8000/api/logout', {
+            method: 'POST',
+            credentials: 'include',
+        })
+            .then((res) => {
+                if (res.ok) {
+                    console.log("Logout berhasil");
+                    window.location.href = '/login';
+                } else {
+                    console.error("Logout gagal");
+                }
+            })
+            .catch((err) => {
+                console.error("Logout error:", err);
+            });
+    }
+
     // Reset form
     const resetForm = () => {
         setFormData({
@@ -152,8 +166,10 @@ const AdminDashboard = () => {
 
             {/* Main Content */}
             <main className="flex-1 p-4 md:p-6">
-                <h1 className="text-2xl font-semibold mb-4">Manage Scholarships</h1>
-
+                <div className='flex items-center justify-between my-5'>
+                    <h1 className="text-2xl font-semibold">Manage Scholarships</h1>
+                    <button className='rounded p-3 text-white bg-red-500' onClick={handleLogout}>Logout</button>
+                </div>
                 {/* Search Bar */}
                 <div className="mb-6">
                     <input
