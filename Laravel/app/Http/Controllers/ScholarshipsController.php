@@ -30,17 +30,17 @@ class ScholarshipsController extends Controller
         $scholarships = $query->get();
 
         // Transformasi data untuk menyesuaikan dengan kebutuhan frontend
-        $formattedScholarships = $scholarships->map(function ($scholarships) {
+        $formattedScholarships = $scholarships->map(function ($scholarship) {
             return [
-                'id' => $scholarships->scholarship_id,
-                'scholarshipName' => $scholarships->scholarship_name,
-                'partner' => $scholarships->partner,
-                'description' => $scholarships->description,
-                'termsAndConditions' => $scholarships->terms_and_conditions,
-                'quota' => $scholarships->quota,
-                'timeLimit' => $scholarships->time_limit->format('Y-m-d'),
-                'logo' => url(Storage::url($scholarships->logo)),
-                'thumbnail' => null, // Tidak ada di database tapi frontend membutuhkannya
+                'id' => $scholarship->scholarship_id,
+                'scholarshipName' => $scholarship->scholarship_name,
+                'partner' => $scholarship->partner,
+                'description' => $scholarship->description,
+                'termsAndConditions' => $scholarship->terms_and_conditions,
+                'quota' => $scholarship->quota,
+                'timeLimit' => $scholarship->time_limit ? $scholarship->time_limit->format('Y-m-d') : null,
+                'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null, // Tidak ada di database tapi frontend membutuhkannya
                 'status' => 'active' // Tidak ada di database tapi frontend membutuhkannya
             ];
         });
@@ -64,6 +64,7 @@ class ScholarshipsController extends Controller
             'quota' => 'required|integer|min:1',
             'timeLimit' => 'required|date',
             'logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -76,8 +77,13 @@ class ScholarshipsController extends Controller
             $logoPath = $request->file('logo')->store('scholarships/logos', 'public');
         }
 
+        $thumbnailPath = null;
+        if ($request->hasFile('thumbnail')) {
+            $thumbnailPath = $request->file('thumbnail')->store('scholarships/thumbnails', 'public');
+        }
+
         // Create scholarship
-        $scholarships = Scholarships::create([
+        $scholarship = Scholarships::create([
             'scholarship_name' => $request->scholarshipName,
             'partner' => $request->partner,
             'description' => $request->description,
@@ -85,19 +91,21 @@ class ScholarshipsController extends Controller
             'quota' => $request->quota,
             'time_limit' => $request->timeLimit,
             'logo' => $logoPath,
+            'thumbnail' => $thumbnailPath,
+            'user_id' => $request->user() ? $request->user()->id : null,
         ]);
 
         // Response
         return response()->json([
-            'id' => $scholarships->scholarship_id,
-            'scholarshipName' => $scholarships->scholarship_name,
-            'partner' => $scholarships->partner,
-            'description' => $scholarships->description,
-            'termsAndConditions' => $scholarships->terms_and_conditions,
-            'quota' => $scholarships->quota,
-            'timeLimit' => $scholarships->time_limit->format('Y-m-d'),
-            'logo' => url(Storage::url($scholarships->logo)),
-            'thumbnail' => null,
+            'id' => $scholarship->scholarship_id,
+            'scholarshipName' => $scholarship->scholarship_name,
+            'partner' => $scholarship->partner,
+            'description' => $scholarship->description,
+            'termsAndConditions' => $scholarship->terms_and_conditions,
+            'quota' => $scholarship->quota,
+            'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
+            'logo' => $logoPath ? url(Storage::url($logoPath)) : null,
+            'thumbnail' => $thumbnailPath ? url(Storage::url($thumbnailPath)) : null,
             'status' => 'active'
         ], 201);
     }
@@ -111,18 +119,18 @@ class ScholarshipsController extends Controller
     public function show($id)
     {
         try {
-            $scholarships = Scholarships::findOrFail($id);
+            $scholarship = Scholarships::findOrFail($id);
 
             return response()->json([
-                'id' => $scholarships->scholarship_id,
-                'scholarshipName' => $scholarships->scholarship_name,
-                'partner' => $scholarships->partner,
-                'description' => $scholarships->description,
-                'termsAndConditions' => $scholarships->terms_and_conditions,
-                'quota' => $scholarships->quota,
-                'timeLimit' => $scholarships->time_limit->format('Y-m-d'),
-                'logo' => url(Storage::url($scholarships->logo)),
-                'thumbnail' => null,
+                'id' => $scholarship->scholarship_id,
+                'scholarshipName' => $scholarship->scholarship_name,
+                'partner' => $scholarship->partner,
+                'description' => $scholarship->description,
+                'termsAndConditions' => $scholarship->terms_and_conditions,
+                'quota' => $scholarship->quota,
+                'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
+                'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
                 'status' => 'active'
             ]);
         } catch (\Exception $e) {
@@ -140,7 +148,7 @@ class ScholarshipsController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $scholarships = Scholarships::findOrFail($id);
+            $scholarship = Scholarships::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
                 'scholarshipName' => 'required|string|max:255',
@@ -150,6 +158,7 @@ class ScholarshipsController extends Controller
                 'quota' => 'required|integer|min:1',
                 'timeLimit' => 'required|date',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -168,27 +177,36 @@ class ScholarshipsController extends Controller
             // Menangani unggahan logo
             if ($request->hasFile('logo')) {
                 // Menghapus logo lama jika ada
-                if ($scholarships->logo && Storage::disk('public')->exists($scholarships->logo)) {
-                    Storage::disk('public')->delete($scholarships->logo);
+                if ($scholarship->logo && Storage::disk('public')->exists($scholarship->logo)) {
+                    Storage::disk('public')->delete($scholarship->logo);
                 }
 
                 $logoPath = $request->file('logo')->store('scholarships/logos', 'public');
                 $data['logo'] = $logoPath;
             }
 
-            $scholarships->update($data);
+            if ($request->hasFile('thumbnail')) {
+                if ($scholarship->thumbnail && Storage::disk('public')->exists($scholarship->thumbnail)) {
+                    Storage::disk('public')->delete($scholarship->thumbnail);
+                }
+
+                $thumbnailPath = $request->file('thumbnail')->store('scholarships/thumbnails', 'public');
+                $data['thumbnail'] = $thumbnailPath;
+            }
+
+            $scholarship->update($data);
 
             // Response
             return response()->json([
-                'id' => $scholarships->scholarship_id,
-                'scholarshipName' => $scholarships->scholarship_name,
-                'partner' => $scholarships->partner,
-                'description' => $scholarships->description,
-                'termsAndConditions' => $scholarships->terms_and_conditions,
-                'quota' => $scholarships->quota,
-                'timeLimit' => $scholarships->time_limit->format('Y-m-d'),
-                'logo' => url(Storage::url($scholarships->logo)),
-                'thumbnail' => null,
+                'id' => $scholarship->scholarship_id,
+                'scholarshipName' => $scholarship->scholarship_name,
+                'partner' => $scholarship->partner,
+                'description' => $scholarship->description,
+                'termsAndConditions' => $scholarship->terms_and_conditions,
+                'quota' => $scholarship->quota,
+                'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
+                'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
                 'status' => 'active'
             ]);
         } catch (\Exception $e) {
@@ -205,14 +223,18 @@ class ScholarshipsController extends Controller
     public function destroy($id)
     {
         try {
-            $scholarships = Scholarships::findOrFail($id);
+            $scholarship = Scholarships::findOrFail($id);
 
             // Menghapus file logo jika ada
-            if ($scholarships->logo && Storage::disk('public')->exists($scholarships->logo)) {
-                Storage::disk('public')->delete($scholarships->logo);
+            if ($scholarship->logo && Storage::disk('public')->exists($scholarship->logo)) {
+                Storage::disk('public')->delete($scholarship->logo);
             }
 
-            $scholarships->delete();
+            if ($scholarship->thumbnail && Storage::disk('public')->exists($scholarship->thumbnail)) {
+                Storage::disk('public')->delete($scholarship->thumbnail);
+            }
+
+            $scholarship->delete();
 
             return response()->json(['message' => 'Beasiswa berhasil dihapus'], 200);
         } catch (\Exception $e) {
@@ -232,17 +254,17 @@ class ScholarshipsController extends Controller
             ->orWhere('description', 'LIKE', "%{$term}%")
             ->get();
 
-        $formattedScholarships = $scholarships->map(function ($scholarships) {
+        $formattedScholarships = $scholarships->map(function ($scholarship) {
             return [
-                'id' => $scholarships->scholarship_id,
-                'scholarshipName' => $scholarships->scholarship_name,
-                'partner' => $scholarships->partner,
-                'description' => $scholarships->description,
-                'termsAndConditions' => $scholarships->terms_and_conditions,
-                'quota' => $scholarships->quota,
-                'timeLimit' => $scholarships->time_limit->format('Y-m-d'),
-                'logo' => url(Storage::url($scholarships->logo)),
-                'thumbnail' => null,
+                'id' => $scholarship->scholarship_id,
+                'scholarshipName' => $scholarship->scholarship_name,
+                'partner' => $scholarship->partner,
+                'description' => $scholarship->description,
+                'termsAndConditions' => $scholarship->terms_and_conditions,
+                'quota' => $scholarship->quota,
+                'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
+                'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) :null,
                 'status' => 'active'
             ];
         });

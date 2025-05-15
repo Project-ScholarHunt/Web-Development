@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Scholarships extends Model  // Idealnya menggunakan Scholarship (singular)
 {
     use HasFactory;
+
+    protected $table = 'scholarships';
     
     // Tentukan primary key jika tidak menggunakan 'id'
     protected $primaryKey = 'scholarship_id';
@@ -22,24 +24,18 @@ class Scholarships extends Model  // Idealnya menggunakan Scholarship (singular)
         'time_limit',
         'logo',
         'thumbnail',
-        'admin_id',
         'user_id'
     ];
     
     // Konversi otomatis untuk beberapa kolom
     protected $casts = [
-        'time_limit' => 'date'
+        'time_limit' => 'datetime',
+        'quota' => 'integer'
     ];
     
     // Relasi dengan user (owner/creator)
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-    
-    // Relasi dengan admin (jika ada)
-    public function admin()
-    {
-        return $this->belongsTo(User::class, 'admin_id');
     }
 }
