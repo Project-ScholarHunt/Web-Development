@@ -48,7 +48,7 @@ const Navbar = () => {
                 "Accept": "application/json",
             },
         })
-            .then(async (res) => {
+          .then(async (res) => {
                 const data = await res.json();
                 console.log("Status:", res.status);
                 console.log("Response:", data);
