@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Login from './pages/login.jsx'
 import Register from './pages/register.jsx'
 import Dashboard from './pages/dashboard.jsx'
@@ -11,6 +11,7 @@ import Profile from './pages/Profile.jsx'
 import Apply from './pages/ApplyScholarship.jsx'
 import MyScholarships from './pages/MyScholarships.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
