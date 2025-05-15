@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard.jsx'
 import Scholarships from './pages/scholarships.jsx'
 import Apply from './pages/ApplyScholarship.jsx'
 import MyScholarships from './pages/MyScholarships.jsx'
+import AdminLogin from './pages/AdminLogin.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/scholarships' element={<Scholarships />} />
         <Route path='/apply-scholarship' element={<Apply />} />
         <Route path='/my-scholarships' element={<MyScholarships />} />
+        <Route path='/adminlogin' element={<AdminLogin />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

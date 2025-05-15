@@ -4,7 +4,6 @@ import CrudScholarshipForm from '../components/CrudScholarshipForm';
 import CrudScholarshipTable from '../components/CrudScholarshipTable';
 
 const AdminDashboard = () => {
-    // Sample data - replace with your API call
     const [items, setItems] = useState([]);
     const [formData, setFormData] = useState({
         id: '',
@@ -22,39 +21,52 @@ const AdminDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Fetch data - replace with API call
     useEffect(() => {
-        // Simulating API call
-        const sampleData = [
-            {
-                id: 1,
-                scholarshipName: "Engineering Excellence Scholarship",
-                partner: "Tech Solutions Inc",
-                description: "Scholarship for outstanding engineering students",
-                termsAndConditions: "Must maintain 3.5 GPA",
-                quota: 50,
-                timeLimit: "6 months",
-                logo: "tech-logo.png",
-                thumbnail: "tech-thumbnail.jpg",
-                status: "active"
+        console.log("useEffect executed")
+        fetch("http://localhost:8000/api/admin/check-token", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Accept": "application/json",
             },
-            {
-                id: 2,
-                scholarshipName: "Business Leaders of Tomorrow",
-                partner: "Global Business Association",
-                description: "Supporting future business leaders",
-                termsAndConditions: "Must participate in leadership program",
-                quota: 25,
-                timeLimit: "1 year",
-                logo: "business-logo.png",
-                thumbnail: "business-thumbnail.jpg",
-                status: "active"
-            }
-        ];
-        setItems(sampleData);
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.message === "Admin token is valid") {
+                    const sampleData = [
+                        {
+                            id: 1,
+                            scholarshipName: "Engineering Excellence Scholarship",
+                            partner: "Tech Solutions Inc",
+                            description: "Scholarship for outstanding engineering students",
+                            termsAndConditions: "Must maintain 3.5 GPA",
+                            quota: 50,
+                            timeLimit: "6 months",
+                            logo: "tech-logo.png",
+                            thumbnail: "tech-thumbnail.jpg",
+                            status: "active"
+                        },
+                        {
+                            id: 2,
+                            scholarshipName: "Business Leaders of Tomorrow",
+                            partner: "Global Business Association",
+                            description: "Supporting future business leaders",
+                            termsAndConditions: "Must participate in leadership program",
+                            quota: 25,
+                            timeLimit: "1 year",
+                            logo: "business-logo.png",
+                            thumbnail: "business-thumbnail.jpg",
+                            status: "active"
+                        }
+                    ];
+                    setItems(sampleData);
+                    console.log("Welcome admin");
+                } else {
+                    console.warn("Unauthorized");
+                }
+            })
+            .catch(err => console.error("Error verifying admin token", err));
     }, []);
 
-    // Handle form input changes
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({

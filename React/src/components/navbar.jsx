@@ -6,32 +6,63 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+    // useEffect(() => {
+    //     const token = localStorage.getItem("token");
+
+    //     fetch("http://127.0.0.1:8000/api/me", {
+    //         headers: {
+    //             Authorization: `Bearer ${token}`,
+    //             Accept: "application/json",
+    //         },
+    //     })
+    //         .then(async (res) => {
+    //             if (!res.ok) {  
+    //                 const errorData = await res.json().catch(() => null);
+    //                 console.error("Fetch failed:", errorData || res.statusText);
+    //                 setIsLoggedIn(false);
+    //                 return;
+    //             }
+    //             return res.json();
+    //         })
+    //         .then((data) => {
+    //             if (data) {
+    //                 setIsLoggedIn(true);
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             console.error("Unexpected error:", err);
+    //             setIsLoggedIn(false);
+    //         });
+    // }, []);
     useEffect(() => {
         const token = localStorage.getItem("token");
+        const email = localStorage.getItem("user");
 
-        fetch("http://127.0.0.1:8000/api/me", {
+        console.log("Token:", token);
+        console.log("Email:", email);
+
+        fetch("http://localhost:8000/api/user/check-token", {
             headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
+                "Authorization": `Bearer ${token}`,
+                "X-User-Email": email,
+                "Accept": "application/json",
             },
         })
             .then(async (res) => {
-                if (!res.ok) {  
-                    const errorData = await res.json().catch(() => null);
-                    console.error("Fetch failed:", errorData || res.statusText);
-                    setIsLoggedIn(false);
-                    return;
-                }
-                return res.json();
-            })
-            .then((data) => {
-                if (data) {
+                const data = await res.json();
+                console.log("Status:", res.status);
+                console.log("Response:", data);
+
+                if (res.ok && data.message === "Token and email are valid") {
                     setIsLoggedIn(true);
+                    console.log("Token valid:", data.message);
+                } else {
+                    setIsLoggedIn(false);
+                    console.warn("Token tidak valid:", data.message);
                 }
             })
             .catch((err) => {
-                console.error("Unexpected error:", err);
-                setIsLoggedIn(false);
+                console.error("Fetch error:", err);
             });
     }, []);
 
