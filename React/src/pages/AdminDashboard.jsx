@@ -26,7 +26,23 @@ const AdminDashboard = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchScholarships();
+        console.log("useEffect executed")
+        fetch("http://localhost:8000/api/admin/check-token", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Accept": "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.message === "Admin token is valid") {
+                    fetchScholarships();
+                    console.log("Welcome admin");
+                } else {
+                    console.warn("Unauthorized");
+                }
+            })
+            .catch(err => console.error("Error verifying admin token", err));
     }, []);
 
     const fetchScholarships = async () => {
@@ -41,7 +57,7 @@ const AdminDashboard = () => {
             setIsLoading(false);
         }
     };
-
+  
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({

@@ -34,28 +34,6 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function registerAdmin(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'phone'    => 'nullable|string|max:20',
-        ]);
-
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-            'is_admin' => 1,
-        ]);
-
-        Auth::login($user);
-
-        return response()->json(['message' => 'Admin registered & logged in', 'user' => $user]);
-    }
-
     public function loginUser(Request $request)
     {
         $request->validate([
@@ -78,7 +56,7 @@ class UserController extends Controller
         return response()->json([
             'message' => 'User login successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user->email
         ]);
     }
 
@@ -96,7 +74,7 @@ class UserController extends Controller
         }
 
         if ((int)$user->is_admin !== 1) {
-            return response()->json(['message' => 'Access denied. Not an admin account.'], 403);
+            return response()->json(['message' => 'Access denied.'], 403);
         }
 
         $token = $user->createToken('admin-token')->plainTextToken;
@@ -104,7 +82,7 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Admin login successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user->name
         ]);
     }
 
