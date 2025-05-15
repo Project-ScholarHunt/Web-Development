@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\TokenValidation;
+use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 
 // Auth routes
@@ -18,8 +20,14 @@ Route::prefix('admin')->group(function () {
     Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 });
 
-Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
-    return response()->json($request->user());
+Route::middleware(['auth:sanctum', TokenValidation::class])->get('/user/check-token', function (Request $request) {
+    return response()->json([
+        'message' => 'Token and email are valid',
+    ]);
+});
+
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->get('/admin/check-token', function (Request $request) {
+    return response()->json(['message' => 'Admin token is valid']);
 });
 
 // Scholarship routes
