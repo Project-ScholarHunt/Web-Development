@@ -1,5 +1,5 @@
 // AdminDashboard.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminScholarships from '../components/AdminScholarships';
 import AdminApplicants from '../components/AdminApplicants';
@@ -12,6 +12,24 @@ const AdminDashboard = () => {
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
+
+    useEffect(() => {
+        fetch("http://localhost:8000/api/admin/check-token", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Accept": "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.message === "Admin token is valid") {
+                    console.log("Welcome admin");
+                } else {
+                    console.warn("Unauthorized");
+                }
+            })
+            .catch(err => console.error("Error verifying admin token", err));
+    }, []);
 
     // Render content berdasarkan section yang dipilih
     const renderContent = () => {
@@ -34,25 +52,7 @@ const AdminDashboard = () => {
                 return <AdminScholarships />;
         }
     };
-    useEffect(() => {
-        console.log("useEffect executed")
-        fetch("http://localhost:8000/api/admin/check-token", {
-            headers: {
-                "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                "Accept": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.message === "Admin token is valid") {
-                    fetchScholarships();
-                    console.log("Welcome admin");
-                } else {
-                    console.warn("Unauthorized");
-                }
-            })
-            .catch(err => console.error("Error verifying admin token", err));
-    }, []);
+
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
             {/* Mobile Header with Menu Button */}
