@@ -8,6 +8,7 @@ import Notfound from './pages/notfound.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import Scholarships from './pages/scholarships.jsx'
 import Apply from './pages/Apply.jsx'
+import Profile from './pages/Profile.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -21,6 +22,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/admindashboard' element={<AdminDashboard />} />
         <Route path='/scholarships' element={<Scholarships />} />
         <Route path='/applyscholarship' element={<Apply />} />
+        <Route path='/profile' element={<Profile />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
