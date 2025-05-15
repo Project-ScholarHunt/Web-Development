@@ -1,76 +1,70 @@
-import React from 'react'
+import React from 'react';
 
-const CrudScholarshipTable = ({
-    items,
-    handleEdit,
-    handleDelete
-}) => {
-    return (
-        <div>
-            <div className="bg-white rounded shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="p-2 text-left">Name</th>
-                                <th className="p-2 text-left hidden md:table-cell">Partner</th>
-                                <th className="p-2 text-left hidden md:table-cell">Quota</th>
-                                <th className="p-2 text-left hidden md:table-cell">Time Limit</th>
-                                <th className="p-2 text-left">Status</th>
-                                <th className="p-2 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map(item => (
-                                <tr key={item.id} className="border-t hover:bg-gray-50">
-                                    <td className="p-2">
-                                        <div>{item.scholarshipName}</div>
-                                        <div className="text-xs text-gray-500 md:hidden">
-                                            {item.partner} | Quota: {item.quota} | Limit: {item.timeLimit}
-                                        </div>
-                                    </td>
-                                    <td className="p-2 hidden md:table-cell">{item.partner}</td>
-                                    <td className="p-2 hidden md:table-cell">{item.quota}</td>
-                                    <td className="p-2 hidden md:table-cell">{item.timeLimit}</td>
-                                    <td className="p-2">
-                                        <span className={`inline-block px-2 py-1 rounded text-xs ${item.status === 'active' ? 'bg-green-100 text-green-800' :
-                                            item.status === 'inactive' ? 'bg-red-100 text-red-800' :
-                                                'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-2">
-                                        <div className="flex flex-wrap gap-2">
-                                            <button
-                                                onClick={() => handleEdit(item.id)}
-                                                className="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {items.length === 0 && (
-                                <tr>
-                                    <td colSpan="6" className="p-4 text-center text-gray-500">
-                                        No scholarships found
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading }) => {
+    if (items.length === 0 && !isLoading) {
+        return (
+            <div className="bg-white p-6 rounded shadow-md text-center">
+                <p>No scholarships found. Add your first one above.</p>
             </div>
-        </div>
-    )
-}
+        );
+    }
 
-export default CrudScholarshipTable
+    return (
+        <div className="bg-white rounded shadow-md overflow-x-auto">
+            <table className="w-full table-auto">
+                <thead className="bg-gray-50 border-b">
+                    <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quota</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Limit</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                    {items.map(item => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0 h-10 w-10">
+                                        <img className="h-10 w-10 rounded-full object-cover" src={item.logo} alt={item.scholarshipName} />
+                                    </div>
+                                    <div className="ml-4">
+                                        <div className="text-sm font-medium text-gray-900">{item.scholarshipName}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.partner}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quota}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.timeLimit}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {item.status}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button 
+                                    onClick={() => handleEdit(item.id)} 
+                                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                    disabled={isLoading}
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    onClick={() => handleDelete(item.id)} 
+                                    className="text-red-600 hover:text-red-900"
+                                    disabled={isLoading}
+                                >
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default CrudScholarshipTable;

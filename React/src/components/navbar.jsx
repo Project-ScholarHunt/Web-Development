@@ -16,7 +16,7 @@ const Navbar = () => {
             },
         })
             .then(async (res) => {
-                if (!res.ok) {  
+                if (!res.ok) {
                     const errorData = await res.json().catch(() => null);
                     console.error("Fetch failed:", errorData || res.statusText);
                     setIsLoggedIn(false);

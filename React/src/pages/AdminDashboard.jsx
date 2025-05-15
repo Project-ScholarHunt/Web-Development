@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import CrudScholarshipForm from '../components/CrudScholarshipForm';
 import CrudScholarshipTable from '../components/CrudScholarshipTable';
+import axios from 'axios';
+
+const API_URL = "http://127.0.0.1:8000/api";
 
 const AdminDashboard = () => {
-    // Sample data - replace with your API call
     const [items, setItems] = useState([]);
     const [formData, setFormData] = useState({
         id: '',
@@ -15,98 +17,118 @@ const AdminDashboard = () => {
         quota: '',
         timeLimit: '',
         logo: '',
-        thumbnail: '',
-        status: 'active'
+        thumbnail: ''
     });
     const [isEditing, setIsEditing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Fetch data - replace with API call
     useEffect(() => {
-        // Simulating API call
-        const sampleData = [
-            {
-                id: 1,
-                scholarshipName: "Engineering Excellence Scholarship",
-                partner: "Tech Solutions Inc",
-                description: "Scholarship for outstanding engineering students",
-                termsAndConditions: "Must maintain 3.5 GPA",
-                quota: 50,
-                timeLimit: "6 months",
-                logo: "tech-logo.png",
-                thumbnail: "tech-thumbnail.jpg",
-                status: "active"
-            },
-            {
-                id: 2,
-                scholarshipName: "Business Leaders of Tomorrow",
-                partner: "Global Business Association",
-                description: "Supporting future business leaders",
-                termsAndConditions: "Must participate in leadership program",
-                quota: 25,
-                timeLimit: "1 year",
-                logo: "business-logo.png",
-                thumbnail: "business-thumbnail.jpg",
-                status: "active"
-            }
-        ];
-        setItems(sampleData);
+        fetchScholarships();
     }, []);
 
-    // Handle form input changes
+    const fetchScholarships = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(`${API_URL}/scholarships`);
+            setItems(response.data);
+        } catch (err) {
+            setError("Failed to load scholarships. Please try again later.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
-            [name]: name === 'quota' ? parseInt(value) : value
+            [name]: name === 'quota' ? parseInt(value) || '' : value
         });
     };
 
-    // Handle file uploads
     const handleFileChange = (e) => {
         const { name, files } = e.target;
-        if (files.length > 0) {
-            // In a real app, you'd upload the file and get a URL
+        if (files && files.length > 0) {
             setFormData({
                 ...formData,
-                [name]: files[0].name // Placeholder, would be a URL in production
+                [name]: files[0]
             });
         }
     };
 
-    // Submit form
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isEditing) {
-            // Update existing item
-            setItems(items.map(item => item.id === formData.id ? formData : item));
-        } else {
-            // Add new item
-            setItems([...items, { ...formData, id: Date.now() }]);
+        setIsLoading(true);
+        setError(null);
+
+        const formDataToSend = new FormData();
+        Object.keys(formData).forEach(key => {
+            if (key === 'logo' || key === 'thumbnail') {
+                if (formData[key] instanceof File) {
+                    formDataToSend.append(key, formData[key]);
+                }
+            } else {
+                formDataToSend.append(key, formData[key]);
+            }
+        });
+
+        try {
+            let response;
+            if (isEditing) {
+                formDataToSend.append('_method', 'PUT');
+                response = await axios.post(`${API_URL}/scholarships/${formData.id}`, formDataToSend, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                setItems(items.map(item => item.id === formData.id ? response.data : item));
+            } else {
+                response = await axios.post(`${API_URL}/scholarships`, formDataToSend, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                setItems([...items, response.data]);
+            }
+            resetForm();
+        } catch (err) {
+            setError(err.response?.data?.error || err.message);
+        } finally {
+            setIsLoading(false);
         }
-        resetForm();
     };
 
-    // Edit an item
     const handleEdit = (id) => {
         const itemToEdit = items.find(item => item.id === id);
-        setFormData(itemToEdit);
+        setFormData({
+            id: itemToEdit.id,
+            scholarshipName: itemToEdit.scholarshipName,
+            partner: itemToEdit.partner,
+            description: itemToEdit.description,
+            termsAndConditions: itemToEdit.termsAndConditions,
+            quota: itemToEdit.quota,
+            timeLimit: itemToEdit.timeLimit,
+            logo: '', // Reset file input for editing
+            thumbnail: '' // Reset file input for editing
+        });
         setIsEditing(true);
-        // Scroll to form when editing on mobile
-        if (window.innerWidth < 768) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
     };
 
-    // Delete an item
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this scholarship?')) {
-            setItems(items.filter(item => item.id !== id));
+            setIsLoading(true);
+            setError(null);
+            try {
+                await axios.delete(`${API_URL}/scholarships/${id}`);
+                setItems(items.filter(item => item.id !== id));
+            } catch (err) {
+                setError("Failed to delete scholarship. Please try again later.");
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
-    // Reset form
     const resetForm = () => {
         setFormData({
             id: '',
@@ -117,44 +139,31 @@ const AdminDashboard = () => {
             quota: '',
             timeLimit: '',
             logo: '',
-            thumbnail: '',
-            status: 'active'
+            thumbnail: ''
         });
         setIsEditing(false);
     };
 
-    // Filter items based on search term
     const filteredItems = items.filter(item =>
-        item.scholarshipName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.partner.toLowerCase().includes(searchTerm.toLowerCase())
+        item.scholarshipName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.partner?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Toggle mobile menu
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
+    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
-            {/* Mobile Header with Menu Button */}
             <div className="bg-white p-4 flex items-center justify-between md:hidden shadow-md">
                 <h2 className="text-xl font-bold">Admin Portal</h2>
-                <button
-                    onClick={toggleMobileMenu}
-                    className="p-2 rounded bg-gray-100 hover:bg-gray-200"
-                >
-                    {isMobileMenuOpen ? <i class="ri-close-large-fill text-xl"></i> : <i class="ri-dashboard-horizontal-line text-xl"></i>}
+                <button onClick={toggleMobileMenu} className="p-2 rounded bg-gray-100 hover:bg-gray-200">
+                    {isMobileMenuOpen ? <i className="ri-close-large-fill text-xl"></i> : <i className="ri-dashboard-horizontal-line text-xl"></i>}
                 </button>
             </div>
-
-            {/* Sidebar - responsive */}
             <Sidebar isMobileMenuOpen={isMobileMenuOpen} />
-
-            {/* Main Content */}
             <main className="flex-1 p-4 md:p-6">
-                <h1 className="text-2xl font-semibold mb-4">Manage Scholarships</h1>
-
-                {/* Search Bar */}
+                <h1 className="text-2xl font-semibold mb-4">Add New Scholarship</h1>
+                {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">{error}</div>}
+                {isLoading && <div className="text-center my-4">Loading...</div>}
                 <div className="mb-6">
                     <input
                         type="text"
@@ -164,7 +173,6 @@ const AdminDashboard = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-
                 <CrudScholarshipForm
                     formData={formData}
                     handleInputChange={handleInputChange}
@@ -172,12 +180,13 @@ const AdminDashboard = () => {
                     handleSubmit={handleSubmit}
                     resetForm={resetForm}
                     isEditing={isEditing}
+                    isLoading={isLoading}
                 />
-
                 <CrudScholarshipTable
                     items={filteredItems}
                     handleEdit={handleEdit}
                     handleDelete={handleDelete}
+                    isLoading={isLoading}
                 />
             </main>
         </div>
