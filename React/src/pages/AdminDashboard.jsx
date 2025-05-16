@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminScholarships from '../components/AdminScholarships';
 import AdminApplicants from '../components/AdminApplicants';
+import NotFound from '../pages/notfound'
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [currentSection, setCurrentSection] = useState('scholarships'); // Default section
+    const [isAuthorized, setIsAuthorized] = useState(false)
 
     // Toggle mobile menu
     const toggleMobileMenu = () => {
@@ -14,21 +16,34 @@ const AdminDashboard = () => {
     };
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/admin/check-token", {
-            headers: {
-                "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                "Accept": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.message === "Admin token is valid") {
-                    console.log("Welcome admin");
-                } else {
-                    console.warn("Unauthorized");
-                }
+        const rawUser = localStorage.getItem('user');
+        const isAdmin = (() => {
+            try {
+                const parsed = JSON.parse(rawUser);
+                return !!parsed.is_admin;
+            } catch (e) {
+                setCurrentSection('unauthorized');
+                setIsAuthorized(false)
+            }
+        })();
+        if (isAdmin) {
+            fetch("http://localhost:8000/api/admin/check-token", {
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Accept": "application/json",
+                },
             })
-            .catch(err => console.error("Error verifying admin token", err));
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.message === "Admin token is valid") {
+                        console.log("Welcome admin");
+                        setIsAuthorized(true)
+                    } else {
+                        setCurrentSection('unauthorized')
+                    }
+                })
+                .catch(err => console.error("Error verifying admin token", err));
+        }
     }, []);
 
     // Render content berdasarkan section yang dipilih
@@ -48,35 +63,42 @@ const AdminDashboard = () => {
                     <h1 className="text-xl font-bold mb-4">Settings</h1>
                     <p>Settings panel will be implemented soon.</p>
                 </div>;
+            case 'unauthorized':
+                return <NotFound />
             default:
                 return <AdminScholarships />;
         }
     };
 
+    const render = isAuthorized ? "min-h-screen flex flex-col md:flex-row bg-gray-100" : ""
+
     return (
-        <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
-            {/* Mobile Header with Menu Button */}
-            <div className="bg-white p-4 flex items-center justify-between md:hidden shadow-md">
-                <h2 className="text-xl font-bold">Admin Portal</h2>
-                <button
-                    onClick={toggleMobileMenu}
-                    className="p-2 rounded bg-gray-100 hover:bg-gray-200"
-                >
-                    {isMobileMenuOpen ?
-                        <i className="ri-close-line text-xl"></i> :
-                        <i className="ri-menu-line text-xl"></i>
-                    }
-                </button>
-            </div>
+        <div className={`${render}`}>
+            {isAuthorized ? (
+                <>
+                    <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
 
-            {/* Sidebar - responsive */}
-            <Sidebar
-                isMobileMenuOpen={isMobileMenuOpen}
-                currentSection={currentSection}
-                setCurrentSection={setCurrentSection}
-            />
+                    </div>
+                    <div className="bg-white p-4 flex items-center justify-between md:hidden shadow-md">
+                        <h2 className="text-xl font-bold">Admin Portal</h2>
+                        <button
+                            onClick={toggleMobileMenu}
+                            className="p-2 rounded bg-gray-100 hover:bg-gray-200"
+                        >
+                            {isMobileMenuOpen ?
+                                <i className="ri-close-line text-xl"></i> :
+                                <i className="ri-menu-line text-xl"></i>
+                            }
+                        </button>
+                    </div>
+                    <Sidebar
+                        isMobileMenuOpen={isMobileMenuOpen}
+                        currentSection={currentSection}
+                        setCurrentSection={setCurrentSection}
+                    />
+                </>
+            ) : null}
 
-            {/* Main Content */}
             <main className="flex-1 p-4 md:p-6">
                 {renderContent()}
             </main>
