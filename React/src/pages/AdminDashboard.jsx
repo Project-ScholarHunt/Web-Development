@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminScholarships from '../components/AdminScholarships';
 import AdminApplicants from '../components/AdminApplicants';
+import AdminAnalytics from '../components/AdminAnalytics';
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,6 +21,8 @@ const AdminDashboard = () => {
                 return <AdminScholarships />;
             case 'applicants':
                 return <AdminApplicants />;
+            case 'analytics':
+                return <AdminAnalytics />;
             case 'users':
                 return <div className="p-4 bg-white rounded-lg shadow-md">
                     <h1 className="text-xl font-bold mb-4">User Management</h1>
