@@ -45,7 +45,6 @@ const Apply = () => {
 
           <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold mb-6">Scholarship Registration Form</h2>
-
             {/* Steps Indicator */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
