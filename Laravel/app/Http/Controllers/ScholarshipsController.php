@@ -82,7 +82,6 @@ class ScholarshipsController extends Controller
             $thumbnailPath = $request->file('thumbnail')->store('scholarships/thumbnails', 'public');
         }
 
-        // Create scholarship
         $scholarship = Scholarships::create([
             'scholarship_name' => $request->scholarshipName,
             'partner' => $request->partner,
@@ -95,7 +94,6 @@ class ScholarshipsController extends Controller
             'user_id' => $request->user() ? $request->user()->id : null,
         ]);
 
-        // Response
         return response()->json([
             'id' => $scholarship->scholarship_id,
             'scholarshipName' => $scholarship->scholarship_name,
@@ -196,7 +194,6 @@ class ScholarshipsController extends Controller
 
             $scholarship->update($data);
 
-            // Response
             return response()->json([
                 'id' => $scholarship->scholarship_id,
                 'scholarshipName' => $scholarship->scholarship_name,
