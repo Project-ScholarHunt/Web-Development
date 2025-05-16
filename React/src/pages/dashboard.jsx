@@ -3,47 +3,40 @@ import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import FaqAccordion from '../components/FaqAccordion';
 import ApplicationTimeline from '../components/ApplicationTimeline';
-import axios from 'axios'; // Make sure to install axios: npm install axios
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-    // State for scholarship data
     const [scholarships, setScholarships] = useState([]);
     const [featuredScholarships, setFeaturedScholarships] = useState([]);
     const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [autoSlide, setAutoSlide] = useState(true);
+    const navigate = useNavigate();
 
-    // Fetch scholarships from API
     useEffect(() => {
         const fetchScholarships = async () => {
             try {
                 setIsLoading(true);
-                // Changed to match Laravel API route
                 const response = await axios.get('http://127.0.0.1:8000/api/scholarships');
                 let data = response.data;
 
-                // Check if data is an array, if not and it's an object, convert it
                 if (data && !Array.isArray(data)) {
                     console.log("Response data is not an array:", data);
-                    // If it's an object with numeric keys, convert to array
                     if (typeof data === 'object' && data !== null) {
                         data = Object.values(data);
                     } else {
-                        // If not convertible, initialize as empty array
                         data = [];
                     }
                 }
 
-                // Make sure we have data
                 if (data && data.length > 0) {
                     setScholarships(data);
 
-                    // Select 4 random scholarships for the carousel
                     const randomScholarships = getRandomScholarships(data, 4);
                     setFeaturedScholarships(randomScholarships);
                 } else {
-                    // Ensure scholarships is always an array
                     setScholarships([]);
                     setFeaturedScholarships([]);
                 }
@@ -52,7 +45,6 @@ const Dashboard = () => {
                 console.error("Error fetching scholarships:", err);
                 setError("Failed to load scholarships. Please try again later.");
                 setIsLoading(false);
-                // Ensure scholarships is always an array
                 setScholarships([]);
                 setFeaturedScholarships([]);
             }
@@ -61,27 +53,21 @@ const Dashboard = () => {
         fetchScholarships();
     }, []);
 
-    // Function to get random scholarships
     const getRandomScholarships = (scholarshipsArray, count) => {
         if (!scholarshipsArray || scholarshipsArray.length === 0) return [];
 
-        // If there are fewer scholarships than requested, return all of them
         if (scholarshipsArray.length <= count) return scholarshipsArray;
 
-        // Create a copy of the array to avoid modifying the original
         const shuffled = [...scholarshipsArray];
 
-        // Fisher-Yates (Knuth) shuffle algorithm
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
-        // Return the first 'count' elements
         return shuffled.slice(0, count);
     };
 
-    // Handle carousel navigation
     const handleNextFeatured = () => {
         if (featuredScholarships.length > 0) {
             setCurrentFeaturedIndex((prevIndex) =>
@@ -98,14 +84,23 @@ const Dashboard = () => {
         }
     };
 
-    // Auto slide feature
+    // Navigate to the scholarship page with a specific scholarship ID
+    const handleViewDetails = (scholarshipId) => {
+        navigate(`/scholarships?id=${scholarshipId}`);
+    };
+
+    // Navigate to see all scholarships
+    const handleSeeMore = () => {
+        navigate('/scholarships');
+    };
+
     useEffect(() => {
         let interval;
 
         if (autoSlide && featuredScholarships.length > 1) {
             interval = setInterval(() => {
                 handleNextFeatured();
-            }, 5000); // Change slide every 5 seconds
+            }, 5000);
         }
 
         return () => {
@@ -115,7 +110,6 @@ const Dashboard = () => {
         };
     }, [autoSlide, featuredScholarships.length, currentFeaturedIndex]);
 
-    // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return 'No deadline';
         try {
@@ -132,16 +126,14 @@ const Dashboard = () => {
         }
     };
 
-    // Loading state
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-teal-500">
-                <div className="text-white text-xl">Loading scholarships...</div>
+                <div className="text-white text-xl">Loading...</div>
             </div>
         );
     }
 
-    // Error state
     if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-teal-500">
@@ -150,7 +142,6 @@ const Dashboard = () => {
         );
     }
 
-    // Get current featured scholarship
     const currentFeatured = featuredScholarships.length > 0 ?
         featuredScholarships[currentFeaturedIndex] : null;
 
@@ -213,7 +204,10 @@ const Dashboard = () => {
                                     <span className="bg-white px-4 py-1 rounded text-gray-800">Quota: {currentFeatured.quota}</span>
                                     <span className="bg-white px-4 py-1 rounded text-gray-800">Deadline: {formatDate(currentFeatured.timeLimit)}</span>
                                 </div>
-                                <button className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-colors">
+                                <button
+                                    className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-colors"
+                                    onClick={() => handleViewDetails(currentFeatured.id)}
+                                >
                                     Apply now
                                 </button>
                             </div>
@@ -252,12 +246,15 @@ const Dashboard = () => {
                 <section className="container mx-auto px-6 py-12 mt-8">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-bold">Available Scholarships</h2>
-                        <a href="/scholarships" className="text-lg hover:text-blue-700 transition-colors flex items-center">
+                        <button
+                            onClick={handleSeeMore}
+                            className="text-lg hover:text-blue-700 transition-colors flex items-center"
+                        >
                             See more
                             <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                             </svg>
-                        </a>
+                        </button>
                     </div>
 
                     {scholarships && scholarships.length === 0 ? (
@@ -292,15 +289,15 @@ const Dashboard = () => {
                                         <p className="text-sm">{scholarship.description && scholarship.description.substring(0, 100)}...</p>
                                         {/* Move the link to margin-top: auto to push it to the bottom */}
                                         <div className="mt-auto pt-4">
-                                            <a
-                                                href={`/scholarships/${scholarship.id}`}
+                                            <button
+                                                onClick={() => handleViewDetails(scholarship.id)}
                                                 className="text-blue-700 hover:text-blue-900 text-sm font-medium flex items-center"
                                             >
                                                 View Details
                                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                                 </svg>
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

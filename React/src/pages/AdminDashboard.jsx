@@ -108,8 +108,8 @@ const AdminDashboard = () => {
             termsAndConditions: itemToEdit.termsAndConditions,
             quota: itemToEdit.quota,
             timeLimit: itemToEdit.timeLimit,
-            logo: '', // Reset file input for editing
-            thumbnail: '' // Reset file input for editing
+            logo: '',
+            thumbnail: ''
         });
         setIsEditing(true);
     };
