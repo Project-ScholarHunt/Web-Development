@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\TokenValidation;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
+use App\Http\Controllers\ProfileController;
 
 // Auth routes
 Route::prefix('users')->group(function () {
@@ -40,3 +41,14 @@ Route::prefix('scholarships')->group(function () {
     Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
     Route::get('/search/{term}', [ScholarshipsController::class, 'search']);
 });
+
+
+
+
+// Pastikan pakai auth:sanctum atau auth:api sesuai login-mu
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
+});
+
