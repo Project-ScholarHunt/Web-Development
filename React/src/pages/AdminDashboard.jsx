@@ -7,10 +7,9 @@ import NotFound from '../pages/notfound'
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [currentSection, setCurrentSection] = useState('scholarships'); // Default section
+    const [currentSection, setCurrentSection] = useState('scholarships');
     const [isAuthorized, setIsAuthorized] = useState(false)
 
-    // Toggle mobile menu
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
