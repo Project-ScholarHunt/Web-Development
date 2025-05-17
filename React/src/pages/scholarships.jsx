@@ -209,7 +209,7 @@ const ScholarshipsPage = () => {
 
                                 {/* Apply Button */}
                                 <div className="mt-6 flex justify-center">
-                                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg">
+                                    <button className="bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg">
                                         Apply for Scholarship
                                     </button>
                                 </div>

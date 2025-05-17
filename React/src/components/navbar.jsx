@@ -6,34 +6,6 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-    // useEffect(() => {
-    //     const token = localStorage.getItem("token");
-
-    //     fetch("http://127.0.0.1:8000/api/me", {
-    //         headers: {
-    //             Authorization: `Bearer ${token}`,
-    //             Accept: "application/json",
-    //         },
-    //     })
-    //         .then(async (res) => {
-    //             if (!res.ok) {  
-    //                 const errorData = await res.json().catch(() => null);
-    //                 console.error("Fetch failed:", errorData || res.statusText);
-    //                 setIsLoggedIn(false);
-    //                 return;
-    //             }
-    //             return res.json();
-    //         })
-    //         .then((data) => {
-    //             if (data) {
-    //                 setIsLoggedIn(true);
-    //             }
-    //         })
-    //         .catch((err) => {
-    //             console.error("Unexpected error:", err);
-    //             setIsLoggedIn(false);
-    //         });
-    // }, []);
     useEffect(() => {
         const token = localStorage.getItem("token");
         const email = localStorage.getItem("user");
@@ -48,7 +20,7 @@ const Navbar = () => {
                 "Accept": "application/json",
             },
         })
-          .then(async (res) => {
+            .then(async (res) => {
                 const data = await res.json();
                 console.log("Status:", res.status);
                 console.log("Response:", data);
@@ -71,15 +43,24 @@ const Navbar = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
-    const navigation = useNavigate()
+    const navigate = useNavigate()
 
     const handleLogout = () => {
         localStorage.removeItem("token")
         localStorage.removeItem("user")
-        navigation({
+        navigate({
             pathname: "/login"
         })
     }
+
+    const [searchKeyword, setSearchKeyword] = useState("");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (searchKeyword.trim() !== "") {
+            navigate(`/scholarships?search=${encodeURIComponent(searchKeyword)}`);
+        }
+    };
 
     return (
         <div className="absolute w-full px-5 top-7 z-50">
@@ -98,16 +79,21 @@ const Navbar = () => {
                     </div>
 
                     {/* Search Bar - Hidden on mobile, visible on medium screens and larger */}
-                    <div className="hidden md:flex flex-1 max-w-md mx-8">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="hidden md:flex flex-1 max-w-md mx-8"
+                    >
                         <div className="relative w-full">
                             <input
                                 type="text"
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
                                 placeholder="Search scholarship"
                                 className="w-full px-10 py-1 rounded-full border border-gray-300 bg-white"
                             />
                             <i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
                         </div>
-                    </div>
+                    </form>
 
                     {/* Desktop Navigation Links - Hidden on mobile, visible on large screens */}
                     <div className="hidden lg:flex items-center gap-6">

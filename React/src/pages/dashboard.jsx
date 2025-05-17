@@ -267,15 +267,15 @@ const Dashboard = () => {
                                 <div key={scholarship.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
                                     {/* Improved image container with fixed height and proper sizing */}
                                     <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
-                                        {scholarship.logo ? (
+                                        {scholarship.thumbnail ? (
                                             <img
-                                                src={scholarship.logo}
+                                                src={scholarship.thumbnail}
                                                 alt={`${scholarship.scholarshipName} logo`}
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
                                             <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
-                                                <span className="text-lg">Logo not available</span>
+                                                <span className="text-lg">Thumbnail not available</span>
                                             </div>
                                         )}
                                     </div>
@@ -291,7 +291,7 @@ const Dashboard = () => {
                                         <div className="mt-auto pt-4">
                                             <button
                                                 onClick={() => handleViewDetails(scholarship.id)}
-                                                className="text-blue-700 hover:text-blue-900 text-sm font-medium flex items-center"
+                                                className="text-blue-700 hover:text-blue-900 text-sm font-medium flex items-center hover:cursor-pointer"
                                             >
                                                 View Details
                                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
