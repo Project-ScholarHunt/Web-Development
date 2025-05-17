@@ -30,7 +30,7 @@ const FaqAccordion = () => {
     };
 
     return (
-        <section className="container mx-auto p-6 mb-10">
+        <section className="container mx-auto p-2 mb-10">
             <h2 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
 
             <div className="max-w-3xl mx-auto">

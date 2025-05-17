@@ -11,13 +11,14 @@ import Profile from './pages/Profile.jsx'
 import Apply from './pages/ApplyScholarship.jsx'
 import MyScholarships from './pages/MyScholarships.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
+import MainLayout from './pages/MainLayout.jsx'
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Dashboard />} />
+
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='/dashboard' element={<Dashboard />} />
@@ -27,7 +28,14 @@ createRoot(document.getElementById('root')).render(
         <Route path='/profile' element={<Profile />} />
         <Route path='/apply-scholarship' element={<Apply />} />
         <Route path='/my-scholarships' element={<MyScholarships />} />
-        <Route path='/adminlogin' element={<AdminLogin />}/>
+        <Route path='/adminlogin' element={<AdminLogin />} />
+
+        <Route element={<MainLayout />}>
+          <Route path='/' element={<Dashboard />} />
+          <Route path='/scholarships' element={<Scholarships />} />
+          <Route path='/my-scholarships' element={<MyScholarships />} />
+          <Route path='/profile' element={<Profile />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

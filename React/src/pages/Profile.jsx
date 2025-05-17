@@ -133,8 +133,6 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-            <Navbar />
-
             <div className="flex-grow container mx-auto px-4 py-10 md:py-[15vh]">
                 <div className="max-w-4xl mx-auto">
                     {/* Header Card */}
@@ -353,8 +351,6 @@ const Profile = () => {
                     </div>
                 </div>
             )}
-
-            <Footer />
         </div>
     );
 };

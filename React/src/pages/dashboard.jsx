@@ -5,6 +5,7 @@ import FaqAccordion from '../components/FaqAccordion';
 import ApplicationTimeline from '../components/ApplicationTimeline';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import CarouselDashboard from '../components/CarouselDashboard';
 
 const Dashboard = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -144,103 +145,27 @@ const Dashboard = () => {
 
     const currentFeatured = featuredScholarships.length > 0 ?
         featuredScholarships[currentFeaturedIndex] : null;
-
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-            <Navbar />
+        <div className="min-h-screen flex flex-col bg-gray-100">
+            {/* <Navbar /> */}
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}
-                {currentFeatured ? (
-                    <section className="relative bg-gray-700 p-0 h-80 md:h-96 overflow-hidden rounded-lg">
-                        {/* Hero background */}
-                        <div className="absolute inset-0">
-                            <img
-                                src={currentFeatured.thumbnail || '/placeholder-scholarship.jpg'}
-                                alt={currentFeatured.scholarshipName}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
-                        </div>
-
-                        {/* Navigation arrows */}
-                        <div className="absolute inset-y-0 left-0 flex items-center z-10">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handlePrevFeatured();
-                                }}
-                                className="bg-opacity-30 text-white p-4 rounded-r-md hover:bg-opacity-50 cursor-pointer"
-                                aria-label="Previous scholarship"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="absolute inset-y-0 right-0 flex items-center z-10">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleNextFeatured();
-                                }}
-                                className="bg-opacity-30 text-white p-4 rounded-l-md hover:bg-opacity-50 cursor-pointer"
-                                aria-label="Next scholarship"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </button>
-                        </div>
-
-                        {/* Content positioned at bottom left */}
-                        <div className="absolute bottom-10 p-2 w-full">
-                            <div className="container mx-[2vw]">
-                                <h1 className="text-3xl font-bold mb-4 text-white">{currentFeatured.scholarshipName}</h1>
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    <span className="bg-white px-4 py-1 rounded text-gray-800">{currentFeatured.partner}</span>
-                                    <span className="bg-white px-4 py-1 rounded text-gray-800">Quota: {currentFeatured.quota}</span>
-                                    <span className="bg-white px-4 py-1 rounded text-gray-800">Deadline: {formatDate(currentFeatured.timeLimit)}</span>
-                                </div>
-                                <button
-                                    className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-colors"
-                                    onClick={() => handleViewDetails(currentFeatured.id)}
-                                >
-                                    Apply now
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Pagination indicator and auto-slide toggle */}
-                        <div className="absolute bottom-10 right-[3vw] flex items-center gap-2">
-                            <button
-                                onClick={() => setAutoSlide(!autoSlide)}
-                                className={`p-2 rounded-full ${autoSlide ? 'bg-blue-600' : 'bg-gray-400'}`}
-                                title={autoSlide ? "Pause auto-slide" : "Enable auto-slide"}
-                            >
-                                {autoSlide ? (
-                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                ) : (
-                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                )}
-                            </button>
-                            <span className="bg-white bg-opacity-50 px-3 py-1 rounded-full text-sm">
-                                {currentFeaturedIndex + 1}/{featuredScholarships.length}
-                            </span>
-                        </div>
-                    </section>
-                ) : (
-                    <section className="relative bg-gray-700 p-0 h-80 md:h-96 overflow-hidden rounded-lg flex items-center justify-center">
-                        <div className="text-white">No featured scholarship available</div>
-                    </section>
-                )}
+                {currentFeatured ?
+                    <CarouselDashboard
+                        currentFeatured={currentFeatured}
+                        currentFeaturedIndex={currentFeaturedIndex}
+                        featuredScholarships={featuredScholarships}
+                        autoSlide={autoSlide}
+                        setAutoSlide={setAutoSlide}
+                        handlePrevFeatured={handlePrevFeatured}
+                        handleNextFeatured={handleNextFeatured}
+                        handleViewDetails={handleViewDetails}
+                        formatDate={formatDate}
+                    /> : (
+                        <section className="relative bg-gray-700 p-0 h-80 md:h-96 overflow-hidden rounded-lg flex items-center justify-center">
+                            <div className="text-white">No featured scholarship available</div>
+                        </section>
+                    )}
 
                 {/* Scholarship Grid Section */}
                 <section className="container mx-auto px-6 py-12 mt-8">
@@ -248,12 +173,10 @@ const Dashboard = () => {
                         <h2 className="text-2xl font-bold">Available Scholarships</h2>
                         <button
                             onClick={handleSeeMore}
-                            className="text-lg hover:text-blue-700 transition-colors flex items-center"
+                            className="text-lg hover:text-blue-700 transition-colors hover:cursor-pointer flex items-center"
                         >
                             See more
-                            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
+                            <i class="ri-arrow-right-s-line text-xl"></i>
                         </button>
                     </div>
 
@@ -262,16 +185,19 @@ const Dashboard = () => {
                             <p className="text-lg text-white">No scholarships available at the moment.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.isArray(scholarships) && scholarships.slice(0, 6).map((scholarship) => (
-                                <div key={scholarship.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                        <div className="grid grid-cols-1 mx-auto md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            {Array.isArray(scholarships) && scholarships.slice(0, 5).map((scholarship) => (
+                                <div
+                                    onClick={() => handleViewDetails(scholarship.id)}
+                                    key={scholarship.id}
+                                    className="hover:cursor-pointer bg-white shadow-md max-w-55 h-90 hover:shadow-lg transition-shadow flex flex-col rounded">
                                     {/* Improved image container with fixed height and proper sizing */}
                                     <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
                                         {scholarship.thumbnail ? (
                                             <img
                                                 src={scholarship.thumbnail}
                                                 alt={`${scholarship.scholarshipName} logo`}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover rounded-t-sm"
                                             />
                                         ) : (
                                             <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
@@ -280,24 +206,10 @@ const Dashboard = () => {
                                         )}
                                     </div>
                                     {/* The key change is here - making the content div flex-grow to fill remaining space */}
-                                    <div className="p-5 bg-sky-300 flex flex-col flex-grow">
-                                        <h3 className="font-medium text-lg mb-2">{scholarship.scholarshipName}</h3>
+                                    <div className="p-5 flex flex-col flex-grow">
+                                        <h4 className="font-medium text-sm mb-2">{scholarship.scholarshipName}</h4>
                                         <div className="flex items-center text-sm text-gray-600 mb-3">
                                             <span className="mr-3">{scholarship.partner}</span>
-                                            <span className="px-2 py-1 bg-sky-200 rounded-full text-xs">Quota: {scholarship.quota}</span>
-                                        </div>
-                                        <p className="text-sm">{scholarship.description && scholarship.description.substring(0, 100)}...</p>
-                                        {/* Move the link to margin-top: auto to push it to the bottom */}
-                                        <div className="mt-auto pt-4">
-                                            <button
-                                                onClick={() => handleViewDetails(scholarship.id)}
-                                                className="text-blue-700 hover:text-blue-900 text-sm font-medium flex items-center hover:cursor-pointer"
-                                            >
-                                                View Details
-                                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                                </svg>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -306,23 +218,23 @@ const Dashboard = () => {
                     )}
                 </section>
 
-                {/* Call-to-Action Section - only shown for logged out users */}
-                <section className="container mx-auto py-12 px-6 mt-8 bg-blue-600 rounded-lg text-white text-center">
+                <section className="container mx-auto py-12 px-6 mt-8 bg-gradient-to-r from-[#357ABD] to-[#506AD4] rounded-none sm:rounded-sm text-white text-center">
                     <h2 className="text-2xl font-bold mb-4">Ready to Find Your Perfect Scholarship?</h2>
                     <p className="mb-6 max-w-2xl mx-auto">Join thousands of students who have already found funding for their education through our platform.</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="/register" className="bg-white text-blue-600 px-6 py-3 rounded font-medium">Create Account</a>
-                        <a href="/about" className="border border-white px-6 py-3 rounded font-medium">Learn More</a>
+                        <a href="/register" className="hover:bg-white hover:text-[#357ABD] transition-all border border-white px-6 py-3 rounded font-medium duration-300">
+                            Create an Account
+                        </a>
+                        <a href="/about" className="hover:bg-white hover:text-[#357ABD] transition-all border border-white px-6 py-3 rounded font-medium duration-300">
+                            Learn More
+                        </a>
                     </div>
                 </section>
 
-                {/* Application Timeline Section */}
                 <ApplicationTimeline />
 
-                {/* FAQ Accordion Section */}
                 <FaqAccordion />
             </div>
-            <Footer />
         </div>
     );
 };

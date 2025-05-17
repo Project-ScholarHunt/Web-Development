@@ -63,8 +63,8 @@ const Navbar = () => {
     };
 
     return (
-        <div className="absolute w-full px-5 top-7 z-50">
-            <nav className="relative bg-blue-200 py-4 px-5 rounded-2xl shadow-md w-full">
+        <div className="fixed top-0 w-full z-50 shadow">
+            <nav className="relative bg-white py-4 px-5 w-full">
                 <div className="flex flex-row items-center justify-between w-full">
 
                     {/* Logo - Always visible */}
@@ -96,10 +96,10 @@ const Navbar = () => {
                     </form>
 
                     {/* Desktop Navigation Links - Hidden on mobile, visible on large screens */}
-                    <div className="hidden lg:flex items-center gap-6">
-                        <Link to="/" className="text-black hover:text-gray-600 font-medium">Home</Link>
-                        <Link to="/scholarships" className="text-black hover:text-gray-600 font-medium">Scholarships</Link>
-                        <Link to="/my-scholarships" className="text-black hover:text-gray-600 font-medium">My Scholarships</Link>
+                    <div className="hidden lg:flex items-center gap-10">
+                        <Link to="/" className="text-black hover:text-blue-500 font-medium">Home</Link>
+                        <Link to="/scholarships" className="text-black hover:text-blue-500 font-medium">Scholarships</Link>
+                        <Link to="/my-scholarships" className="text-black hover:text-blue-500 font-medium">My Scholarships</Link>
                         {isLoggedIn ?
                             <button
                                 className='bg-red-500 hover:cursor-pointer text-white rounded font-medium tracking-wider hover:bg-red-700 px-4 py-2'
@@ -136,13 +136,13 @@ const Navbar = () => {
 
                 {/* Mobile Menu Panel */}
                 <div
-                    className={`lg:hidden absolute left-0 right-0 top-full mt-2 bg-blue-200 rounded-lg shadow-lg transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                    className={`lg:hidden absolute left-0 right-0 top-full rounded-lg shadow-lg transition-all duration-300 bg-white ease-in-out ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
                         }`}
                 >
                     <div className="flex flex-col p-4 gap-3">
-                        <Link to="/" className="text-black hover:text-gray-600 font-medium py-2 border-b border-blue-300">Home</Link>
-                        <Link to="/scholarships" className="text-black hover:text-gray-600 font-medium py-2 border-b border-blue-300">Scholarships</Link>
-                        <Link to="/my-scholarships" className="text-black hover:text-gray-600 font-medium py-2 border-b border-blue-300">My Scholarships</Link>
+                        <Link to="/" className="text-black hover:text-blue-500 font-medium py-2 border-b border-blue-300">Home</Link>
+                        <Link to="/scholarships" className="text-black hover:text-blue-500 font-medium py-2 border-b border-blue-300">Scholarships</Link>
+                        <Link to="/my-scholarships" className="text-black hover:text-blue-500 font-medium py-2 border-b border-blue-300">My Scholarships</Link>
                         {isLoggedIn ?
                             <button
                                 className="bg-red-500 hover:bg-red-700 hover:cursor-pointer text-white px-4 py-2 rounded font-medium tracking-wider text-center mt-2"
