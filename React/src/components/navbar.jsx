@@ -4,14 +4,12 @@ import NavbarPNG from '../assets/img/navbar.png';
 
 const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [searchKeyword, setSearchKeyword] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         const email = localStorage.getItem("user");
-
-        console.log("Token:", token);
-        console.log("Email:", email);
 
         fetch("http://localhost:8000/api/user/check-token", {
             headers: {
@@ -22,15 +20,10 @@ const Navbar = () => {
         })
             .then(async (res) => {
                 const data = await res.json();
-                console.log("Status:", res.status);
-                console.log("Response:", data);
-
                 if (res.ok && data.message === "Token and email are valid") {
                     setIsLoggedIn(true);
-                    console.log("Token valid:", data.message);
                 } else {
                     setIsLoggedIn(false);
-                    console.warn("Token tidak valid:", data.message);
                 }
             })
             .catch((err) => {
@@ -38,27 +31,28 @@ const Navbar = () => {
             });
     }, []);
 
-
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate({
             pathname: "/login"
-        })
-    }
-
-    const [searchKeyword, setSearchKeyword] = useState("");
+        });
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (searchKeyword.trim() !== "") {
             navigate(`/scholarships?search=${encodeURIComponent(searchKeyword)}`);
+            setSearchKeyword("");
+            if (isMobileMenuOpen) {
+                setIsMobileMenuOpen(false);
+            }
         }
     };
 
@@ -114,14 +108,18 @@ const Navbar = () => {
 
                     {/* Mobile Search Bar - Visible only on small screens */}
                     <div className="md:hidden flex-1 mx-3">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search"
-                                className="w-full px-8 py-1 rounded-full border border-gray-300 bg-white text-sm"
-                            />
-                            <i className="ri-search-line absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
-                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search"
+                                    value={searchKeyword}
+                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    className="w-full px-8 py-1 rounded-full border border-gray-300 bg-white text-sm"
+                                />
+                                <i className="ri-search-line absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
+                            </div>
+                        </form>
                     </div>
 
                     {/* Mobile Menu Button - Visible only on mobile and medium screens */}

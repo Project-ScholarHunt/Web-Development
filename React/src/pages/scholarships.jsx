@@ -12,24 +12,30 @@ const ScholarshipsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Get query parameters to check if a specific scholarship ID was passed
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const scholarshipId = queryParams.get('id');
+    const searchTerm = queryParams.get('search');
 
     useEffect(() => {
         const fetchScholarships = async () => {
             try {
                 setLoading(true);
 
-                // If a specific scholarship ID was provided, fetch just that one
                 if (scholarshipId) {
                     const response = await axios.get(`http://127.0.0.1:8000/api/scholarships/${scholarshipId}`);
-                    // Set both the scholarships array and selected scholarship to this single scholarship
                     setScholarships([response.data]);
                     setSelectedScholarship(response.data);
-                } else {
-                    // Otherwise fetch all scholarships
+                }
+                else if (searchTerm) {
+                    const response = await axios.get(`http://127.0.0.1:8000/api/scholarships/search/${encodeURIComponent(searchTerm)}`);
+                    setScholarships(response.data);
+
+                    if (response.data.length > 0) {
+                        setSelectedScholarship(response.data[0]);
+                    }
+                }
+                else {
                     const response = await axios.get('http://127.0.0.1:8000/api/scholarships');
                     setScholarships(response.data);
 
@@ -46,7 +52,7 @@ const ScholarshipsPage = () => {
         };
 
         fetchScholarships();
-    }, [scholarshipId]); // Re-run when scholarshipId changes
+    }, [scholarshipId, searchTerm]);
 
     const formatTimeLimit = (timeLimit) => {
         if (!timeLimit) return 'N/A';
@@ -83,8 +89,12 @@ const ScholarshipsPage = () => {
             <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
                 <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-bold mb-2">No Scholarships Available</h2>
-                        <p>There are currently no scholarships available. Please check back later.</p>
+                        <h2 className="text-xl font-bold mb-2">No Scholarships Found</h2>
+                        {searchTerm ? (
+                            <p>No scholarships found matching "{searchTerm}". Please try a different search term.</p>
+                        ) : (
+                            <p>There are currently no scholarships available. Please check back later.</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -94,19 +104,24 @@ const ScholarshipsPage = () => {
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
             <main className="flex-grow container mx-auto px-6 py-[15vh]">
+                <h1 className="text-3xl font-bold text-white mb-6">
+                    {searchTerm ? `Search Results for "${searchTerm}"` : "Scholarships"}
+                </h1>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left Panel - Scholarship List - Only show if we're not looking at a specific scholarship */}
                     {!scholarshipId && (
                         <div className="w-full md:w-1/3 bg-white rounded-lg shadow-md p-4 h-[70vh] overflow-y-auto scrollbar-custom">
-                            <h2 className="text-xl font-semibold mb-4 text-gray-800">Available Scholarships</h2>
+                            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                                {searchTerm ? `Found ${scholarships.length} scholarships` : "Available Scholarships"}
+                            </h2>
 
                             {scholarships.map((scholarship) => (
                                 <div
                                     key={scholarship.id}
                                     onClick={() => setSelectedScholarship(scholarship)}
-                                    className={`p-4 mb-3 rounded-sm cursor-pointer transition-all ${selectedScholarship && selectedScholarship.id === scholarship.id
-                                            ? 'bg-blue-100 border-l-4 border-blue-500'
-                                            : 'bg-gray-50 hover:bg-gray-100'
+                                    className={`p-4 mb-3 rounded-lg cursor-pointer transition-all ${selectedScholarship && selectedScholarship.id === scholarship.id
+                                        ? 'bg-blue-100 border-l-4 border-blue-500'
+                                        : 'bg-gray-50 hover:bg-gray-100'
                                         }`}
                                 >
                                     <div className="flex items-center">
