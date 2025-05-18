@@ -124,7 +124,7 @@ const Profile = () => {
         } else {
             const initials = userData.username.charAt(0).toUpperCase();
             return (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400 text-white text-4xl font-bold rounded-full">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#357ABD] to-[#506AD4] text-white text-4xl font-bold rounded-full">
                     {initials}
                 </div>
             );
@@ -132,12 +132,12 @@ const Profile = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+        <div className="min-h-screen flex flex-col bg-gray-200">
             <div className="flex-grow container mx-auto px-4 py-10 md:py-[15vh]">
                 <div className="max-w-4xl mx-auto">
                     {/* Header Card */}
                     <div className="bg-white rounded-t-xl shadow-md p-6 md:p-8 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
+                        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-[#357ABD] to-[#506AD4]"></div>
 
                         <div className="relative flex flex-col md:flex-row items-center gap-6 pt-12">
 
@@ -154,7 +154,7 @@ const Profile = () => {
                                         <button
                                             type="button"
                                             onClick={() => setIsEditing(true)}
-                                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                                            className="hover:cursor-pointer flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                                         >
                                             {/* <FiEdit2 size={16} /> */}
                                             ✏️ Edit Profil
@@ -181,7 +181,7 @@ const Profile = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowPasswordModal(true)}
-                                        className="flex items-center gap-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
+                                        className="hover:cursor-pointer flex items-center gap-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
                                     >
                                         {/* <FiKey size={16} /> */}
                                         🔑 Ubah Password
@@ -282,7 +282,7 @@ const Profile = () => {
             {showPasswordModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-down">
-                        <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-5">
+                        <div className="bg-gradient-to-r from-[#357ABD] to-[#506AD4] p-5">
                             <h2 className="text-xl font-bold text-white">Ubah Password</h2>
                         </div>
 

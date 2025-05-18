@@ -6,6 +6,8 @@ import ApplicationTimeline from '../components/ApplicationTimeline';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import CarouselDashboard from '../components/CarouselDashboard';
+import Error from '../components/Error';
+import Loading from '../components/Loading';
 
 const Dashboard = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -129,17 +131,13 @@ const Dashboard = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-teal-500">
-                <div className="text-white text-xl">Loading...</div>
-            </div>
+            <Loading error={error} />
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-400 to-teal-500">
-                <div className="text-white text-xl">{error}</div>
-            </div>
+            <Error error={error} />
         );
     }
 
@@ -147,7 +145,6 @@ const Dashboard = () => {
         featuredScholarships[currentFeaturedIndex] : null;
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
-            {/* <Navbar /> */}
             <div className="flex-grow">
                 {/* Featured Scholarship - Hero Section */}
                 {currentFeatured ?
@@ -190,9 +187,9 @@ const Dashboard = () => {
                                 <div
                                     onClick={() => handleViewDetails(scholarship.id)}
                                     key={scholarship.id}
-                                    className="hover:cursor-pointer bg-white shadow-md max-w-55 h-90 hover:shadow-lg transition-shadow flex flex-col rounded">
+                                    className="hover:cursor-pointer bg-white shadow-lg max-w-55 h-90 hover:shadow-sm hover:shadow-black transition-shadow flex flex-col rounded">
                                     {/* Improved image container with fixed height and proper sizing */}
-                                    <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                    <div className="h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
                                         {scholarship.thumbnail ? (
                                             <img
                                                 src={scholarship.thumbnail}
@@ -207,10 +204,19 @@ const Dashboard = () => {
                                     </div>
                                     {/* The key change is here - making the content div flex-grow to fill remaining space */}
                                     <div className="p-5 flex flex-col flex-grow">
-                                        <h4 className="font-medium text-sm mb-2">{scholarship.scholarshipName}</h4>
-                                        <div className="flex items-center text-sm text-gray-600 mb-3">
-                                            <span className="mr-3">{scholarship.partner}</span>
+                                        <h4 className="font-medium text-sm mb-1 line-clamp-2">
+                                            {scholarship.scholarshipName}
+                                        </h4>
+                                        <div className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                            From {scholarship.partner}
                                         </div>
+
+                                        {/* Spacer to push quota text to bottom */}
+                                        <div className="flex-grow"></div>
+                                    </div>
+                                    <div className="bg-gray-200 w-full p-3">
+                                        <p className="text-sm ">Quota Remaining: {scholarship.quota}</p>
+                                        <p className="text-sm">Until {scholarship.timeLimit}</p>
                                     </div>
                                 </div>
                             ))}

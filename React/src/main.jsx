@@ -21,13 +21,9 @@ createRoot(document.getElementById('root')).render(
 
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/dashboard' element={<Dashboard />} />
         <Route path='*' element={<Notfound />} />
         <Route path='/admin-dashboard' element={<AdminDashboard />} />
-        <Route path='/scholarships' element={<Scholarships />} />
-        <Route path='/profile' element={<Profile />} />
         <Route path='/apply-scholarship' element={<Apply />} />
-        <Route path='/my-scholarships' element={<MyScholarships />} />
         <Route path='/adminlogin' element={<AdminLogin />} />
 
         <Route element={<MainLayout />}>

@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
+import Loading from '../components/Loading';
+import Error from '../components/Error';
 
 const ScholarshipsPage = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -66,54 +68,32 @@ const ScholarshipsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-                <Navbar />
-                <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
-                    <div className="text-white text-xl">Loading scholarships...</div>
-                </div>
-                <Footer />
-            </div>
+            <Loading />
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-                <Navbar />
-                <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-lg shadow-md text-red-600">
-                        <h2 className="text-xl font-bold mb-2">Error</h2>
-                        <p>{error}</p>
-                    </div>
-                </div>
-                <Footer />
-            </div>
+            <Error error={error}/>
         );
     }
 
     if (scholarships.length === 0) {
         return (
             <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-                <Navbar />
                 <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-bold mb-2">No Scholarships Available</h2>
                         <p>There are currently no scholarships available. Please check back later.</p>
                     </div>
                 </div>
-                <Footer />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-            <Navbar />
-
-            {/* Main content with two-panel layout */}
+        <div className="min-h-screen flex flex-col bg-gray-100">
             <main className="flex-grow container mx-auto px-6 py-[15vh]">
-                <h1 className="text-3xl font-bold text-white mb-6">Scholarships</h1>
-
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left Panel - Scholarship List - Only show if we're not looking at a specific scholarship */}
                     {!scholarshipId && (
@@ -124,7 +104,7 @@ const ScholarshipsPage = () => {
                                 <div
                                     key={scholarship.id}
                                     onClick={() => setSelectedScholarship(scholarship)}
-                                    className={`p-4 mb-3 rounded-lg cursor-pointer transition-all ${selectedScholarship && selectedScholarship.id === scholarship.id
+                                    className={`p-4 mb-3 rounded-sm cursor-pointer transition-all ${selectedScholarship && selectedScholarship.id === scholarship.id
                                             ? 'bg-blue-100 border-l-4 border-blue-500'
                                             : 'bg-gray-50 hover:bg-gray-100'
                                         }`}
@@ -158,7 +138,7 @@ const ScholarshipsPage = () => {
 
                     {/* Right Panel - Scholarship Detail */}
                     {selectedScholarship && (
-                        <div className={`w-full ${!scholarshipId ? 'md:w-4/5' : ''} bg-white rounded-lg shadow-md overflow-hidden`}>
+                        <div className={`w-full ${!scholarshipId ? 'md:w-4/5' : ''} bg-white rounded-sm shadow-md overflow-hidden`}>
                             {/* Header with Thumbnail */}
                             <div className="relative h-64 overflow-hidden">
                                 <img
@@ -218,8 +198,6 @@ const ScholarshipsPage = () => {
                     )}
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 };
