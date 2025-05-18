@@ -1,31 +1,85 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
-// Import ikon (gunakan React Icons atau library ikon lainnya)
-// import { FiEdit2, FiKey, FiUser, FiMail, FiPhone, FiCamera, FiTrash2 } from 'react-icons/fi';
+import axios from 'axios';
 
 const Profile = () => {
-    // State untuk data profil pengguna
+    // State untuk data profile user
     const [userData, setUserData] = useState({
-        username: 'johndoe',
-        email: 'johndoe@example.com',
-        phone: '+62812345678',
-        avatar: null // Simpan URL gambar atau null jika tidak ada
+        name: '',
+        email: '',
+        phone: '',
     });
-
-    // State yang sudah ada dipertahankan
+    
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [tempUserData, setTempUserData] = useState({ ...userData });
+    const [tempUserData, setTempUserData] = useState({});
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
-    const fileInputRef = useRef(null);
-    const [avatarPreview, setAvatarPreview] = useState(userData.avatar);
 
-    // Handler-handler yang sama seperti sebelumnya
+    // Fetch user data when component mounts
+    useEffect(() => {
+        fetchUserData();
+    }, []);
+
+    // Function to fetch user data from API
+    const fetchUserData = async () => {
+        try {
+            setIsLoading(true);
+            
+            // Ambil token dari localStorage atau dari mana pun token Anda disimpan
+            const token = localStorage.getItem('token') || 
+                          sessionStorage.getItem('token') ||
+                          (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
+            
+            if (!token) {
+                setError('Token not found. Please login again.');
+                setIsLoading(false);
+                return;
+            }
+            
+            const response = await axios.get('http://127.0.0.1:8000/api/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true
+            });
+            
+            const user = response.data;
+            
+            // PENTING: menggunakan name bukan username sesuai dengan database Laravel
+            setUserData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            });
+            
+            setTempUserData({
+                name: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            });
+            
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching user data:', err);
+            if (err.response && err.response.status === 401) {
+                setError('Authentication error. Please login again.');
+            } else {
+                setError('Failed to load profile data. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setTempUserData({
@@ -42,94 +96,147 @@ const Profile = () => {
         });
     };
 
-    const handleAvatarUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (!file.type.match('image.*')) {
-                alert('Hanya file gambar yang diperbolehkan');
-                return;
-            }
-
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Ukuran gambar maksimal 5MB');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setAvatarPreview(e.target.result);
-                setTempUserData({
-                    ...tempUserData,
-                    avatar: e.target.result
-                });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleRemoveAvatar = () => {
-        setAvatarPreview(null);
-        setTempUserData({
-            ...tempUserData,
-            avatar: null
-        });
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
-
-    const handleProfileSubmit = (e) => {
+    // Submit profile updates to API
+    const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        setUserData(tempUserData);
-        setIsEditing(false);
-        alert('Profil berhasil diperbarui!');
+        try {
+            const token = localStorage.getItem('token') || 
+                        sessionStorage.getItem('token') ||
+                        (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
+            
+            if (!token) {
+                setError('Token not found. Please login again.');
+                return;
+            }
+            
+            // PENTING: mengirim name bukan username sesuai dengan database Laravel
+            const response = await axios.put('http://127.0.0.1:8000/api/profile', 
+                {
+                    name: tempUserData.name,
+                    email: tempUserData.email,
+                    phone: tempUserData.phone
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                }
+            );
+            
+            // Update user data with response
+            setUserData({
+                ...userData,
+                ...response.data.user
+            });
+            setIsEditing(false);
+            alert('Profil berhasil diperbarui!');
+        } catch (err) {
+            console.error('Error updating profile:', err);
+            if (err.response && err.response.status === 401) {
+                setError('Authentication error. Please login again.');
+            } else if (err.response && err.response.data) {
+                alert(`Error: ${err.response.data.message || 'Gagal memperbarui profil'}`);
+            } else {
+                alert('Gagal memperbarui profil. Silakan coba lagi.');
+            }
+        }
     };
 
-    const handlePasswordSubmit = (e) => {
+    // Submit password change to API
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
             alert('Password baru dan konfirmasi password harus sama!');
             return;
         }
-        alert('Password berhasil diperbarui!');
-        setShowPasswordModal(false);
-        setPasswordForm({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        });
+        
+        try {
+            const token = localStorage.getItem('token') || 
+                        sessionStorage.getItem('token') ||
+                        (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
+            
+            if (!token) {
+                setError('Token not found. Please login again.');
+                return;
+            }
+            
+            await axios.post('http://127.0.0.1:8000/api/profile/password',
+                {
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword,
+                    newPassword_confirmation: passwordForm.confirmPassword
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                }
+            );
+            
+            alert('Password berhasil diperbarui!');
+            setShowPasswordModal(false);
+            setPasswordForm({
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            });
+        } catch (err) {
+            console.error('Error updating password:', err);
+            if (err.response && err.response.status === 401) {
+                setError('Authentication error. Please login again.');
+            } else if (err.response && err.response.data) {
+                alert(`Error: ${err.response.data.message || 'Gagal memperbarui password'}`);
+            } else {
+                alert('Gagal memperbarui password. Silakan coba lagi.');
+            }
+        }
     };
 
     const handleCancel = () => {
         setTempUserData({ ...userData });
-        setAvatarPreview(userData.avatar);
         setIsEditing(false);
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
     };
 
-    // Fungsi untuk menampilkan avatar atau fallback
-    const renderAvatar = () => {
-        if (isEditing ? avatarPreview : userData.avatar) {
-            return (
-                <img
-                    src={isEditing ? avatarPreview : userData.avatar}
-                    alt="Avatar"
-                    className="w-full h-full object-cover rounded-full"
-                />
-            );
-        } else {
-            const initials = userData.username.charAt(0).toUpperCase();
-            return (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400 text-white text-4xl font-bold rounded-full">
-                    {initials}
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+                <Navbar />
+                <div className="flex-grow flex items-center justify-center">
+                    <div className="text-white text-xl">Loading profile data...</div>
                 </div>
-            );
-        }
-    };
+                <Footer />
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+                <Navbar />
+                <div className="flex-grow flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 className="text-xl font-bold text-red-500 mb-4">Error</h2>
+                        <p className="text-gray-700">{error}</p>
+                        <button 
+                            onClick={fetchUserData}
+                            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
@@ -142,11 +249,10 @@ const Profile = () => {
                         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
 
                         <div className="relative flex flex-col md:flex-row items-center gap-6 pt-12">
-
                             {/* User Info */}
                             <div className="text-center md:text-left flex-1 my-5">
                                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                                    {userData.username}
+                                    {userData.name}
                                 </h1>
                                 <p className="text-gray-500">{userData.email}</p>
 
@@ -158,7 +264,6 @@ const Profile = () => {
                                             onClick={() => setIsEditing(true)}
                                             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                                         >
-                                            {/* <FiEdit2 size={16} /> */}
                                             ✏️ Edit Profil
                                         </button>
                                     ) : (
@@ -168,14 +273,14 @@ const Profile = () => {
                                                 form="profile-form"
                                                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
                                             >
-                                                ✓ Simpan
+                                                ✅ Simpan
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={handleCancel}
                                                 className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
                                             >
-                                                ✕ Batal
+                                                ❌ Batal
                                             </button>
                                         </>
                                     )}
@@ -185,7 +290,6 @@ const Profile = () => {
                                         onClick={() => setShowPasswordModal(true)}
                                         className="flex items-center gap-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
                                     >
-                                        {/* <FiKey size={16} /> */}
                                         🔑 Ubah Password
                                     </button>
                                 </div>
@@ -197,27 +301,26 @@ const Profile = () => {
                     <div className="bg-white rounded-b-xl shadow-md p-6 md:p-8 mt-1">
                         <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Username Field */}
+                                {/* Name Field */}
                                 <div className="space-y-2">
-                                    <label htmlFor="username" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                        {/* <FiUser className="text-blue-500" /> */}
-                                        👤 Username
+                                    <label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                        👤 Name
                                     </label>
 
                                     <div className="relative">
                                         {isEditing ? (
                                             <input
                                                 type="text"
-                                                id="username"
-                                                name="username"
-                                                value={tempUserData.username}
+                                                id="name"
+                                                name="name"
+                                                value={tempUserData.name}
                                                 onChange={handleInputChange}
                                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                                placeholder="Masukkan username"
+                                                placeholder="Masukkan nama"
                                             />
                                         ) : (
                                             <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800">
-                                                {userData.username}
+                                                {userData.name}
                                             </div>
                                         )}
                                     </div>
@@ -226,7 +329,6 @@ const Profile = () => {
                                 {/* Email Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                        {/* <FiMail className="text-blue-500" /> */}
                                         ✉️ Email
                                     </label>
 
@@ -252,7 +354,6 @@ const Profile = () => {
                                 {/* Phone Field */}
                                 <div className="space-y-2">
                                     <label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                        {/* <FiPhone className="text-blue-500" /> */}
                                         📱 Nomor Telepon
                                     </label>
 
@@ -269,7 +370,7 @@ const Profile = () => {
                                             />
                                         ) : (
                                             <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800">
-                                                {userData.phone}
+                                                {userData.phone || '-'}
                                             </div>
                                         )}
                                     </div>
@@ -280,7 +381,7 @@ const Profile = () => {
                 </div>
             </div>
 
-            {/* Modal untuk ubah password - Dengan desain yang diperbarui */}
+            {/* Modal untuk ubah password */}
             {showPasswordModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-down">
