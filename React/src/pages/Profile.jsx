@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
+import Loading from '../components/Loading'
 
 const Profile = () => {
     // State untuk data profile user
@@ -206,13 +207,7 @@ const Profile = () => {
     // Show loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-                <Navbar />
-                <div className="flex-grow flex items-center justify-center">
-                    <div className="text-white text-xl">Loading profile data...</div>
-                </div>
-                <Footer />
-            </div>
+            <Loading />
         );
     }
 
