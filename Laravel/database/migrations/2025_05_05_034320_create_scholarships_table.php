@@ -23,12 +23,8 @@ return new class extends Migration
             $table->string('thumbnail')->nullable(); // Tambahkan ini
             
             // Buat kolom opsional
-            $table->unsignedBigInteger('admin_id')->nullable();
-            
-            
-            // Hapus foreign key constraint untuk sementara
-            // $table->foreign('admin_id')->references('admin_id')->on('admins')->onDelete('cascade');
-            // $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->unsignedBigInteger('user_id');            
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->timestamps();
         });
