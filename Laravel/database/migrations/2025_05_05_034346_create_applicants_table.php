@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('applicants', function (Blueprint $table) {
             $table->id('applicant_id');
+            $table->string('fullname');
             $table->string('nim');
             $table->string('address');
             $table->string('university');
@@ -29,8 +30,8 @@ return new class extends Migration
             $table->unsignedBigInteger('scholarship_id');
             $table->foreign('scholarship_id')->references('scholarship_id')->on('scholarships')->onDelete('cascade');
 
-            $table->unsignedBigInteger('student_id');
-            $table->foreign('student_id')->references('student_id')->on('students')->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->timestamps();
         });

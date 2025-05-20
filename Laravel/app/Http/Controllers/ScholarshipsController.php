@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\Scholarships;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class ScholarshipsController extends Controller
 {
@@ -40,8 +40,9 @@ class ScholarshipsController extends Controller
                 'quota' => $scholarship->quota,
                 'timeLimit' => $scholarship->time_limit ? $scholarship->time_limit->format('Y-m-d') : null,
                 'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
-                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null, // Tidak ada di database tapi frontend membutuhkannya
-                'status' => 'active' // Tidak ada di database tapi frontend membutuhkannya
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
+                'status' => 'active',
+                'createdBy' => $scholarship->user_id
             ];
         });
 
@@ -71,43 +72,56 @@ class ScholarshipsController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Menangani unggahan logo
-        $logoPath = null;
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('scholarships/logos', 'public');
+        try {
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return response()->json(['error' => 'User tidak terautentikasi'], 401);
+            }
+
+            // Menangani unggahan logo
+            $logoPath = null;
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('scholarships/logos', 'public');
+            }
+
+            $thumbnailPath = null;
+            if ($request->hasFile('thumbnail')) {
+                $thumbnailPath = $request->file('thumbnail')->store('scholarships/thumbnails', 'public');
+            }
+
+            $scholarship = Scholarships::create([
+                'scholarship_name' => $request->scholarshipName,
+                'partner' => $request->partner,
+                'description' => $request->description,
+                'terms_and_conditions' => $request->termsAndConditions,
+                'quota' => $request->quota,
+                'time_limit' => $request->timeLimit,
+                'logo' => $logoPath,
+                'thumbnail' => $thumbnailPath,
+                'user_id' => $userId,
+            ]);
+
+            return response()->json([
+                'id' => $scholarship->scholarship_id,
+                'scholarshipName' => $scholarship->scholarship_name,
+                'partner' => $scholarship->partner,
+                'description' => $scholarship->description,
+                'termsAndConditions' => $scholarship->terms_and_conditions,
+                'quota' => $scholarship->quota,
+                'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
+                'logo' => $logoPath ? url(Storage::url($logoPath)) : null,
+                'thumbnail' => $thumbnailPath ? url(Storage::url($thumbnailPath)) : null,
+                'status' => 'active',
+                'createdBy' => $userId
+            ], 201);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'error' => 'Failed to create scholarship',
+                'message' => 'An error occurred while processing your request'
+            ], 500);
         }
-
-        $thumbnailPath = null;
-        if ($request->hasFile('thumbnail')) {
-            $thumbnailPath = $request->file('thumbnail')->store('scholarships/thumbnails', 'public');
-        }
-
-        // Create scholarship
-        $scholarship = Scholarships::create([
-            'scholarship_name' => $request->scholarshipName,
-            'partner' => $request->partner,
-            'description' => $request->description,
-            'terms_and_conditions' => $request->termsAndConditions,
-            'quota' => $request->quota,
-            'time_limit' => $request->timeLimit,
-            'logo' => $logoPath,
-            'thumbnail' => $thumbnailPath,
-            'user_id' => $request->user() ? $request->user()->id : null,
-        ]);
-
-        // Response
-        return response()->json([
-            'id' => $scholarship->scholarship_id,
-            'scholarshipName' => $scholarship->scholarship_name,
-            'partner' => $scholarship->partner,
-            'description' => $scholarship->description,
-            'termsAndConditions' => $scholarship->terms_and_conditions,
-            'quota' => $scholarship->quota,
-            'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
-            'logo' => $logoPath ? url(Storage::url($logoPath)) : null,
-            'thumbnail' => $thumbnailPath ? url(Storage::url($thumbnailPath)) : null,
-            'status' => 'active'
-        ], 201);
     }
 
     /**
@@ -131,7 +145,8 @@ class ScholarshipsController extends Controller
                 'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
                 'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
                 'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
-                'status' => 'active'
+                'status' => 'active',
+                'createdBy' => $scholarship->user_id
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Beasiswa tidak ditemukan'], 404);
@@ -196,7 +211,6 @@ class ScholarshipsController extends Controller
 
             $scholarship->update($data);
 
-            // Response
             return response()->json([
                 'id' => $scholarship->scholarship_id,
                 'scholarshipName' => $scholarship->scholarship_name,
@@ -207,10 +221,14 @@ class ScholarshipsController extends Controller
                 'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
                 'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
                 'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
-                'status' => 'active'
+                'status' => 'active',
+                'createdBy' => $scholarship->user_id
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Beasiswa tidak ditemukan atau terjadi kesalahan'], 404);
+            return response()->json([
+                'error' => 'Beasiswa tidak ditemukan atau terjadi kesalahan',
+                'details' => $e->getMessage()
+            ], 404);
         }
     }
 
@@ -241,6 +259,7 @@ class ScholarshipsController extends Controller
             return response()->json(['error' => 'Beasiswa tidak ditemukan atau terjadi kesalahan'], 404);
         }
     }
+
     /**
      * Search for scholarships.
      *
@@ -264,8 +283,9 @@ class ScholarshipsController extends Controller
                 'quota' => $scholarship->quota,
                 'timeLimit' => $scholarship->time_limit->format('Y-m-d'),
                 'logo' => $scholarship->logo ? url(Storage::url($scholarship->logo)) : null,
-                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) :null,
-                'status' => 'active'
+                'thumbnail' => $scholarship->thumbnail ? url(Storage::url($scholarship->thumbnail)) : null,
+                'status' => 'active',
+                'createdBy' => $scholarship->user_id
             ];
         });
 
