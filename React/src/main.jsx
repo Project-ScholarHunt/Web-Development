@@ -28,6 +28,7 @@ createRoot(document.getElementById('root')).render(
 
         <Route element={<MainLayout />}>
           <Route path='/' element={<Dashboard />} />
+          <Route path='/dashboard' element={<Dashboard />} />
           <Route path='/scholarships' element={<Scholarships />} />
           <Route path='/my-scholarships' element={<MyScholarships />} />
           <Route path='/profile' element={<Profile />} />
