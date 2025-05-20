@@ -82,7 +82,7 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Admin login successful',
             'token' => $token,
-            'user' => $user->name
+            'user' => $user
         ]);
     }
 

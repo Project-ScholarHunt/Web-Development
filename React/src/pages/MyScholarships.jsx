@@ -142,8 +142,6 @@ const MyScholarshipsPage = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-            <Navbar />
-
             <main className="flex-grow container mx-auto px-6 py-[15vh]">
                 <h1 className="text-3xl font-bold text-white mb-6">My Scholarships</h1>
 
@@ -414,8 +412,6 @@ const MyScholarshipsPage = () => {
                     </div>
                 )}
             </main>
-
-            <Footer />
         </div>
     );
 };

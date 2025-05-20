@@ -45,7 +45,7 @@ const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading }) =>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button 
-                                    onClick={() => handleEdit(item.id)} 
+                                    onClick={() => handleEdit(item)} 
                                     className="text-indigo-600 hover:text-indigo-900 mr-3"
                                     disabled={isLoading}
                                 >

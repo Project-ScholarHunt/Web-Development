@@ -8,7 +8,6 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 use App\Http\Controllers\ProfileController;
 
-// Auth routes
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
     Route::post('/login', [UserController::class, 'loginUser']);
@@ -31,15 +30,17 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class])->get('/admin/check-token
     return response()->json(['message' => 'Admin token is valid']);
 });
 
-// Scholarship routes
 Route::prefix('scholarships')->group(function () {
     Route::get('/', [ScholarshipsController::class, 'index']);
     Route::get('/show', [ScholarshipsController::class, 'index']);
     Route::get('/{id}', [ScholarshipsController::class, 'show']);
+    Route::get('/search/{term}', [ScholarshipsController::class, 'search']);
+});
+
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->prefix('scholarships')->group(function () {
     Route::post('/', [ScholarshipsController::class, 'store']);
     Route::put('/{id}', [ScholarshipsController::class, 'update']);
     Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
-    Route::get('/search/{term}', [ScholarshipsController::class, 'search']);
 });
 
 
