@@ -348,53 +348,8 @@ const AdminAnalytics = () => {
                         </div>
                     </div>
 
-                    {/* Chart Grid */}
+                    {/* Detailed Status Metrics & Application by Scholarship in first row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Scholarship Applications vs Quota */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-700 mb-4">Applications by Scholarship</h2>
-                            <div className="h-80">
-                                <Bar
-                                    data={scholarshipData}
-                                    options={{
-                                        maintainAspectRatio: false,
-                                        scales: {
-                                            y: {
-                                                beginAtZero: true,
-                                                title: {
-                                                    display: true,
-                                                    text: 'Count'
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Top Universities */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                            <h2 className="text-lg font-medium text-gray-700 mb-4">Top 5 Universities</h2>
-                            <div className="h-80">
-                                <Bar
-                                    data={universityData}
-                                    options={{
-                                        maintainAspectRatio: false,
-                                        indexAxis: 'y',
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                title: {
-                                                    display: true,
-                                                    text: 'Number of Applicants'
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-
                         {/* Detailed Status Metrics */}
                         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                             <h2 className="text-lg font-medium text-gray-700 mb-4">Status Metrics</h2>
@@ -459,6 +414,51 @@ const AdminAnalytics = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Application by Scholarship (Now in grid) */}
+                        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                            <h2 className="text-lg font-medium text-gray-700 mb-4">Applications by Scholarship</h2>
+                            <div className="h-80">
+                                <Bar
+                                    data={scholarshipData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                title: {
+                                                    display: true,
+                                                    text: 'Count'
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Top 5 Universities (Now Full Width at Bottom) */}
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-700 mb-4">Top 5 Universities</h2>
+                        <div className="h-80">
+                            <Bar
+                                data={universityData}
+                                options={{
+                                    maintainAspectRatio: false,
+                                    indexAxis: 'y',
+                                    scales: {
+                                        x: {
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Number of Applicants'
+                                            }
+                                        }
+                                    }
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
