@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import LoginImg from '../assets/img/login.png'
+import { useNavigate } from 'react-router';
 
 const AdminLogin = () => {
 
@@ -7,6 +8,8 @@ const AdminLogin = () => {
         email: '',
         password: '',
     });
+
+    const navigate = useNavigate();
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -49,6 +52,9 @@ const AdminLogin = () => {
                 console.log('Response JSON:', data);
                 localStorage.setItem('token', data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
+                navigate({
+                    pathname: "/admin-dashboard"
+                })
             }
             alert('Login berhasil!');
         } catch (err) {
@@ -111,7 +117,7 @@ const AdminLogin = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full text-white py-2 rounded-lg transition duration-200 ${loading ? 'bg-blue-500 opacity-50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'}`}
+                        className={`w-full hover:cursor-pointer text-white py-2 rounded-lg transition duration-200 ${loading ? 'bg-blue-500 opacity-50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'}`}
                     >
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
