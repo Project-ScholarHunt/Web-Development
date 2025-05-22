@@ -8,37 +8,24 @@ const Register = () => {
   useEffect(() => {
     const token = localStorage.getItem("token") || ""
     if (!token) return;
-
-    fetch("http://127.0.0.1:8000/api/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Invalid token");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Token valid, redirecting to dashboard");
-        navigation({
-          pathname: "/dashboard"
-        });
-      })
-      .catch((err) => {
-        console.warn("Token invalid or expired");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-      });
   }, []);
 
   const [formData, setFormData] = useState({})
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.email || !formData.password || !formData.phone || !formData.name) {
+      setError('Please fill the input field');
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log("executed 1")
+      console.log("Sending request")
+      setLoading(true);
       const response = await fetch('http://127.0.0.1:8000/api/users/register', {
         method: 'POST',
         headers: {
@@ -47,18 +34,21 @@ const Register = () => {
         },
         body: JSON.stringify(formData)
       });
-      console.log("executed 2 ")
 
-      if (!response.ok) {
-        throw new Error('Something went wrong!')
-      }
       const data = await response.json();
       console.log('Success: ', data);
 
-      alert('Email sent successfully!');
+      if (!response.ok) {
+        setError(data.message)
+        throw new Error('Something went wrong!')
+      }
+
+      setLoading(true);
+      alert('Registration successful! Please check your email to verify your account before logging in.');
       setFormData({});
     } catch (error) {
-      console.error('Error:', error);
+      setError("Network error. Please try again later")
+      setLoading(false)
     }
   }
 
@@ -114,16 +104,27 @@ const Register = () => {
                   onChange={handleChange}
                 />
               </div>
+              {error && (
+                <div className="border border-red-400 bg-red-100 text-red-700 px-4 py-3 rounded mb-4">
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
-                className='bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white p-2 tracking-wider rounded mt-5'>
-                  Sign up
+                disabled={loading}
+                className={`w-full hover:cursor-pointer text-white py-2 rounded-lg transition duration-200 ${loading ? 'bg-blue-500 opacity-50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'}`}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    Signing up...
+                  </div>
+                ) : 'Sign up'}
               </button>
             </form>
             <Link
               to="/login"
               className='border border-blue-500 p-2 rounded text-center hover:cursor-pointer transition-all text-blue-500 hover:bg-blue-500 hover:text-white '>
-                Go to Login Page
+              Go to Login Page
             </Link>
           </div>
           <div>

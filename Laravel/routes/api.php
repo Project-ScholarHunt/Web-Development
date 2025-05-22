@@ -7,12 +7,15 @@ use App\Http\Middleware\TokenValidation;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
     Route::post('/login', [UserController::class, 'loginUser']);
     Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 });
+
+Route::get('/email/verify-register/{token}', [UserController::class, 'verifyRegistration']);
 
 Route::prefix('admin')->group(function () {
     Route::post('/register', [UserController::class, 'registerAdmin']);
@@ -43,9 +46,6 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class])->prefix('scholarships')-
     Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
 });
 
-
-
-
 // Pastikan pakai auth:sanctum atau auth:api sesuai login-mu
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
@@ -53,3 +53,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
 });
 
+Route::post('/verify-otp/user', [UserController::class, 'verifyUserOtp']);
+Route::post('/verify-otp/admin', [UserController::class, 'verifyAdminOtp']);
