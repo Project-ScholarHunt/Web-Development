@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const CarouselDashboard = ({
     currentFeatured,
@@ -11,6 +13,31 @@ const CarouselDashboard = ({
     handleViewDetails,
     formatDate
 }) => {
+    const [applicationStatus, setApplicationStatus] = useState({});
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchApplicationStatus = async () => {
+            const token = localStorage.getItem('token');
+            if (token && featuredScholarships.length > 0) {
+                const statusPromises = featuredScholarships.map(async (scholarship) => {
+                    const response = await axios.get(`http://127.0.0.1:8000/api/applicants/check/${scholarship.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    return { id: scholarship.id, applied: response.data.applied };
+                });
+                const statuses = await Promise.all(statusPromises);
+                const statusMap = statuses.reduce((acc, curr) => {
+                    acc[curr.id] = curr.applied;
+                    return acc;
+                }, {});
+                setApplicationStatus(statusMap);
+            }
+        };
+
+        fetchApplicationStatus();
+    }, [featuredScholarships]);
+
     useEffect(() => {
         let interval;
 
@@ -24,6 +51,19 @@ const CarouselDashboard = ({
             if (interval) clearInterval(interval);
         };
     }, [autoSlide, featuredScholarships.length, currentFeaturedIndex]);
+
+    const handleApplyClick = () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login or register to apply for this scholarship.');
+            navigate('/login');
+            return;
+        }
+
+        if (!applicationStatus[currentFeatured.id]) {
+            handleViewDetails(currentFeatured.id);
+        }
+    };
 
     if (!currentFeatured) {
         return (
@@ -88,10 +128,11 @@ const CarouselDashboard = ({
                         <span className="bg-white px-4 py-1 rounded text-gray-800">Deadline: {formatDate(currentFeatured.timeLimit)}</span>
                     </div>
                     <button
-                        className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition-colors"
-                        onClick={() => handleViewDetails(currentFeatured.id)}
+                        className={`bg-blue-600 text-white px-6 py-3 rounded transition-colors ${applicationStatus[currentFeatured.id] ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : 'hover:bg-blue-700'}`}
+                        onClick={handleApplyClick}
+                        disabled={applicationStatus[currentFeatured.id]}
                     >
-                        Apply now
+                        {applicationStatus[currentFeatured.id] ? 'Registered' : 'Apply now'}
                     </button>
                 </div>
             </div>

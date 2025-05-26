@@ -32,6 +32,7 @@ createRoot(document.getElementById('root')).render(
           <Route path='/scholarships' element={<Scholarships />} />
           <Route path='/my-scholarships' element={<MyScholarships />} />
           <Route path='/profile' element={<Profile />} />
+          <Route path='/apply' element={<Apply />} />
         </Route>
       </Routes>
     </BrowserRouter>

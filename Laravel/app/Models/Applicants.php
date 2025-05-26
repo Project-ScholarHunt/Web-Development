@@ -6,14 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use App\Models\Scholarships;
+use App\Models\Selections;
 
-class Applicant extends Model
+class Applicants extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'applicant_id';
+
     protected $fillable = [
         'scholarship_id',
-        'student_id',
+        'user_id',
         'fullname',
         'nim',
         'semester',
@@ -30,6 +33,10 @@ class Applicant extends Model
         'address',
     ];
 
+    protected $casts = [
+        'registration_date' => 'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -38,5 +45,10 @@ class Applicant extends Model
     public function scholarships()
     {
         return $this->belongsTo(Scholarships::class, 'scholarship_id');
+    }
+
+    public function selection()
+    {
+        return $this->hasOne(Selections::class, 'applicant_id');
     }
 }
