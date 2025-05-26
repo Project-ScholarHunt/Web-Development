@@ -12,15 +12,12 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
     Route::post('/login', [UserController::class, 'loginUser']);
-    Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 });
 
 Route::get('/email/verify-register/{token}', [UserController::class, 'verifyRegistration']);
 
 Route::prefix('admin')->group(function () {
-    Route::post('/register', [UserController::class, 'registerAdmin']);
     Route::post('/login', [UserController::class, 'loginAdmin']);
-    Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 });
 
 Route::middleware(['auth:sanctum', TokenValidation::class])->get('/user/check-token', function (Request $request) {
