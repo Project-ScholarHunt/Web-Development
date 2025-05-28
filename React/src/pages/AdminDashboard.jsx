@@ -42,6 +42,7 @@ const AdminDashboard = () => {
                         setIsAuthorized(true)
                         setCurrentSection('scholarships')
                     } else {
+                        console.log(data.message)
                         setCurrentSection('unauthorized')
                     }
                 })
