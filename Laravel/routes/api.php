@@ -45,14 +45,16 @@ Route::prefix('admin')->group(function () {
             return response()->json(['message' => 'Admin token is valid']);
         });
 
-        Route::prefix('scholarships')->group(function () {
-            Route::post('/', [ScholarshipsController::class, 'store']);
-            Route::put('/{id}', [ScholarshipsController::class, 'update']);
-            Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
-        });
-
         Route::get('/applicants', [ApplicantsController::class, 'index']);
         Route::put('/applicants/{applicantId}/status', [ApplicantsController::class, 'updateStatus']);
+    });
+});
+
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+    Route::prefix('scholarships')->group(function () {
+        Route::post('/', [ScholarshipsController::class, 'store']);
+        Route::put('/{id}', [ScholarshipsController::class, 'update']);
+        Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
     });
 });
 

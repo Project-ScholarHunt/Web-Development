@@ -4,6 +4,44 @@ import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
 
+// Data Provinsi dan Kota Indonesia
+const provincesAndCities = {
+  "Aceh": ["Banda Aceh", "Langsa", "Lhokseumawe", "Sabang", "Meulaboh", "Bireuen", "Takengon"],
+  "Sumatera Utara": ["Medan", "Binjai", "Pematangsiantar", "Tanjungbalai", "Sibolga", "Tebing Tinggi", "Padang Sidempuan"],
+  "Sumatera Barat": ["Padang", "Bukittinggi", "Payakumbuh", "Solok", "Sawahlunto", "Padang Panjang", "Pariaman"],
+  "Riau": ["Pekanbaru", "Dumai", "Siak", "Kampar", "Rokan Hulu", "Bengkalis", "Indragiri Hilir"],
+  "Kepulauan Riau": ["Batam", "Tanjung Pinang", "Bintan", "Karimun", "Lingga", "Natuna", "Anambas"],
+  "Jambi": ["Jambi", "Sungai Penuh", "Muaro Jambi", "Batanghari", "Tanjung Jabung Timur", "Tanjung Jabung Barat"],
+  "Sumatera Selatan": ["Palembang", "Lubuklinggau", "Pagar Alam", "Prabumulih", "Ogan Komering Ulu", "Lahat"],
+  "Kepulauan Bangka Belitung": ["Pangkal Pinang", "Belitung", "Bangka", "Bangka Barat", "Bangka Tengah", "Bangka Selatan"],
+  "Bengkulu": ["Bengkulu", "Rejang Lebong", "Kaur", "Seluma", "Mukomuko", "Lebong"],
+  "Lampung": ["Bandar Lampung", "Metro", "Lampung Selatan", "Lampung Tengah", "Lampung Utara", "Lampung Barat"],
+  "DKI Jakarta": ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Kepulauan Seribu"],
+  "Jawa Barat": ["Bandung", "Bogor", "Depok", "Bekasi", "Cimahi", "Tasikmalaya", "Banjar", "Sukabumi", "Cirebon"],
+  "Jawa Tengah": ["Semarang", "Solo", "Magelang", "Salatiga", "Pekalongan", "Tegal", "Surakarta", "Yogyakarta"],
+  "DI Yogyakarta": ["Yogyakarta", "Sleman", "Bantul", "Gunungkidul", "Kulon Progo"],
+  "Jawa Timur": ["Surabaya", "Malang", "Banyuwangi", "Mojokerto", "Pasuruan", "Probolinggo", "Madiun", "Kediri", "Blitar"],
+  "Banten": ["Serang", "Tangerang", "Cilegon", "Tangerang Selatan", "Lebak", "Pandeglang"],
+  "Bali": ["Denpasar", "Badung", "Gianyar", "Karangasem", "Klungkung", "Bangli", "Jembrana", "Buleleng", "Tabanan"],
+  "Nusa Tenggara Barat": ["Mataram", "Bima", "Sumbawa", "Dompu", "Lombok Barat", "Lombok Tengah", "Lombok Timur"],
+  "Nusa Tenggara Timur": ["Kupang", "Ende", "Flores", "Manggarai", "Sumba Timur", "Sumba Barat", "Timor Tengah Selatan"],
+  "Kalimantan Barat": ["Pontianak", "Singkawang", "Sambas", "Ketapang", "Sintang", "Putussibau"],
+  "Kalimantan Tengah": ["Palangkaraya", "Kotawaringin Barat", "Kotawaringin Timur", "Kapuas", "Barito Selatan"],
+  "Kalimantan Selatan": ["Banjarmasin", "Banjarbaru", "Martapura", "Barito Kuala", "Tanah Laut", "Kotabaru"],
+  "Kalimantan Timur": ["Samarinda", "Balikpapan", "Bontang", "Kutai Kartanegara", "Kutai Barat", "Kutai Timur"],
+  "Kalimantan Utara": ["Tarakan", "Bulungan", "Malinau", "Nunukan", "Tana Tidung"],
+  "Sulawesi Utara": ["Manado", "Bitung", "Tomohon", "Kotamobagu", "Minahasa", "Kepulauan Sangihe"],
+  "Sulawesi Tengah": ["Palu", "Donggala", "Toli-Toli", "Buol", "Parigi Moutong", "Tojo Una-Una"],
+  "Sulawesi Selatan": ["Makassar", "Parepare", "Palopo", "Gowa", "Takalar", "Jeneponto", "Bantaeng"],
+  "Sulawesi Tenggara": ["Kendari", "Baubau", "Konawe", "Kolaka", "Konawe Selatan", "Bombana"],
+  "Gorontalo": ["Gorontalo", "Limboto", "Marisa", "Tilamuta", "Kwandang"],
+  "Sulawesi Barat": ["Mamuju", "Polewali Mandar", "Majene", "Mamasa", "Pasangkayu"],
+  "Maluku": ["Ambon", "Maluku Tengah", "Buru", "Kepulauan Aru", "Seram Bagian Barat"],
+  "Maluku Utara": ["Ternate", "Tidore", "Halmahera", "Kepulauan Sula", "Halmahera Selatan"],
+  "Papua": ["Jayapura", "Merauke", "Sorong", "Manokwari", "Nabire", "Wamena", "Timika"],
+  "Papua Barat": ["Manokwari", "Sorong", "Raja Ampat", "Fakfak", "Kaimana", "Teluk Bintuni"]
+};
+
 const Apply = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [documents, setDocuments] = useState({
@@ -23,6 +61,8 @@ const Apply = () => {
     postal_code: '',
     address: '',
   });
+  const [provinces] = useState(Object.keys(provincesAndCities));
+  const [cities, setCities] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -50,6 +90,23 @@ const Apply = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleProvinceChange = (e) => {
+    const selectedProvince = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      province: selectedProvince,
+      city: '' // Reset city when province changes
+    }));
+    setCities(provincesAndCities[selectedProvince] || []);
+  };
+
+  const handleCityChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      city: e.target.value
     }));
   };
 
@@ -260,30 +317,62 @@ const Apply = () => {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium">
-                      City <span className="text-sm text-gray-500">(according to your National Identity Card - KTP)</span>
-                    </label>
-                    <input
-                      type="text"
+                    <label className="block mb-1 font-medium">Province</label>
+                    <select
+                      name="province"
+                      value={formData.province}
+                      onChange={handleProvinceChange}
+                      className="w-full border rounded-md p-2"
+                      required
+                    >
+                      <option value="">Select Province</option>
+                      {provinces.map((province) => (
+                        <option key={province} value={province}>
+                          {province}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium">City</label>
+                    <select
                       name="city"
                       value={formData.city}
+                      onChange={handleCityChange}
+                      className="w-full border rounded-md p-2"
+                      required
+                      disabled={!formData.province} // Disable if no province is selected
+                    >
+                      <option value="">Select City</option>
+                      {cities.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block mb-1 font-medium">Postal Code</label>
+                    <input
+                      type="text"
+                      name="postal_code"
+                      value={formData.postal_code}
                       onChange={handleInputChange}
                       className="w-full border rounded-md p-2"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium">
-                      Province <span className="text-sm text-gray-500">(according to your National Identity Card - KTP)</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="province"
-                      value={formData.province}
+                    <label className="block mb-1 font-medium">Address</label>
+                    <textarea
+                      name="address"
+                      rows="3"
+                      value={formData.address}
                       onChange={handleInputChange}
                       className="w-full border rounded-md p-2"
                       required
-                    />
+                    ></textarea>
                   </div>
                   <div className="pt-4 flex justify-end">
                     <button
@@ -300,15 +389,7 @@ const Apply = () => {
               {activeTab === 2 && (
                 <>
                   <div>
-                    <label className="block mb-1 font-medium">
-                      Next Semester
-                      <span className="relative inline-block ml-1 group">
-                        <i className="ri-information-fill text-gray-400 cursor-pointer"></i>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-600 text-white border border-gray-300 rounded shadow-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                          You will get the scholarship only in the next semester. Make sure you haven't graduated by then.
-                        </div>
-                      </span>
-                    </label>
+                    <label className="block mb-1 font-medium">Next Semester</label>
                     <input
                       type="number"
                       name="semester"
@@ -319,15 +400,7 @@ const Apply = () => {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium">
-                      GPA (GPA / 4.0)
-                      <span className="relative inline-block ml-1 group">
-                        <i className="ri-information-fill text-gray-400 cursor-pointer"></i>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-600 text-white border border-gray-300 rounded shadow-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                          If your university uses a 5.0 GPA scale, convert it to 4.0 (e.g., 4.0/5.0 = 3.2/4.0).
-                        </div>
-                      </span>
-                    </label>
+                    <label className="block mb-1 font-medium">GPA (GPA / 4.0)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -337,32 +410,6 @@ const Apply = () => {
                       className="w-full border rounded-md p-2"
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium">
-                      Postal Code <span className="text-sm text-gray-500">(according to your National Identity Card - KTP)</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="postal_code"
-                      value={formData.postal_code}
-                      onChange={handleInputChange}
-                      className="w-full border rounded-md p-2"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium">
-                      Address <span className="text-sm text-gray-500">(according to your National Identity Card - KTP)</span>
-                    </label>
-                    <textarea
-                      name="address"
-                      rows="3"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="w-full border rounded-md p-2"
-                      required
-                    ></textarea>
                   </div>
                   <div className="pt-4 flex justify-between">
                     <button
@@ -413,15 +460,7 @@ const Apply = () => {
                     </label>
                   </div>
                   <div className="mb-4">
-                    <label className="block mb-1 font-medium">
-                      Statement letter (.pdf)
-                      <span className="relative inline-block ml-1 group">
-                        <i className="ri-information-fill text-gray-400 cursor-pointer"></i>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-gray-600 text-white border border-gray-300 rounded shadow-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-                          Statement letter that confirms you are not receiving any other scholarship and that all form information is accurate.
-                        </div>
-                      </span>
-                    </label>
+                    <label className="block mb-1 font-medium">Statement letter (.pdf)</label>
                     <label
                       htmlFor="statement_letter"
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-md cursor-pointer hover:border-blue-500 transition-colors text-gray-500 text-center p-4"
