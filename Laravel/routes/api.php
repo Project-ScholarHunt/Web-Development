@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApplicantsController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
@@ -34,11 +35,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-applications', [ApplicantsController::class, 'myApplications']);
 });
 
-Route::prefix('admin')->group(function () {
-    Route::post('/register', [UserController::class, 'registerAdmin']);
-    Route::post('/login', [UserController::class, 'loginAdmin']);
+Route::get('/email/verify-register/{token}', [UserController::class, 'verifyRegistration']);
 
-    Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [UserController::class, 'loginAdmin']);
+});
+
+Route::middleware(['auth:sanctum', TokenValidation::class])->get('/user/check-token', function (Request $request) {
+    return response()->json([
+        'message' => 'Token and email are valid',
+    ]);
+});
+
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
         Route::post('/logout', [UserController::class, 'logout']);
         Route::get('/check-token', function (Request $request) {
             return response()->json(['message' => 'Admin token is valid']);
@@ -61,3 +70,7 @@ Route::prefix('scholarships')->group(function () {
     Route::get('/{id}', [ScholarshipsController::class, 'show']);
     Route::get('/search/{term}', [ScholarshipsController::class, 'search']);
 });
+
+Route::post('/verify-otp/user', [UserController::class, 'verifyUserOtp']);
+Route::post('/verify-otp/admin', [UserController::class, 'verifyAdminOtp']);
+
