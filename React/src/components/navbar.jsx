@@ -10,32 +10,12 @@ const Navbar = () => {
     const [userData, setUserData] = useState({ name: "" });
     const navigate = useNavigate();
 
-    useEffect(() => {
-        checkAuthStatus();
-
-        window.addEventListener('storage', handleStorageChange);
-
-        window.addEventListener('userLoggedIn', checkAuthStatus);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('userLoggedIn', checkAuthStatus);
-        };
-    }, []);
-
-    const handleStorageChange = (e) => {
-        if (e.key === 'token' || e.key === 'userEmail') {
-            checkAuthStatus();
-        }
-    };
-
     const checkAuthStatus = () => {
+        console.log("Check Auth Status:")
         const token = localStorage.getItem("token");
-        const email = localStorage.getItem("userEmail");
+        const email = localStorage.getItem("user");
 
         if (token && email) {
-            setIsLoggedIn(true);
-
             fetch("http://localhost:8000/api/user/check-token", {
                 method: "GET",
                 headers: {
@@ -52,11 +32,10 @@ const Navbar = () => {
                             setIsLoggedIn(true);
                             fetchUserData(token, email);
                         } else {
-                            handleLogoutProcess();
+                            console.error(data.message)
                         }
                     } else {
                         if (res.status === 401) {
-                            handleLogoutProcess();
                         }
                     }
                 })
@@ -68,7 +47,7 @@ const Navbar = () => {
         }
     };
 
-    const fetchUserData = (token, email) => {
+    const fetchUserData = async (token, email) => {
         console.log("Fetching user profile data...");
 
         fetch("http://localhost:8000/api/profile", {
@@ -122,14 +101,6 @@ const Navbar = () => {
             });
     };
 
-    const handleLogoutProcess = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userEmail");
-        setIsLoggedIn(false);
-        setUserData({ name: "" });
-        navigate("/login");
-    };
-
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
@@ -144,25 +115,11 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        const token = localStorage.getItem("token");
-
-        if (token) {
-            fetch("http://localhost:8000/api/users/logout", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                }
-            })
-                .finally(() => {
-                    handleLogoutProcess();
-                    closeAllMenus();
-                });
-        } else {
-            handleLogoutProcess();
-            closeAllMenus();
-        }
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setIsLoggedIn(false);
+        setUserData({ name: "" });
+        navigate("/login");
     };
 
     const handleSubmit = (e) => {
@@ -175,17 +132,15 @@ const Navbar = () => {
     };
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (isProfileDropdownOpen && !event.target.closest('.profile-dropdown-container')) {
-                setIsProfileDropdownOpen(false);
-            }
-        };
+        const token = localStorage.getItem("token");
+        const email = localStorage.getItem("user");
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isProfileDropdownOpen]);
+        if (token && email) {
+            checkAuthStatus();
+        } else {
+            setIsLoggedIn(false)
+        }
+    }, []);
 
     return (
         <div className="fixed top-0 w-full z-50 shadow">
