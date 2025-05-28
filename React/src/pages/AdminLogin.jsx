@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import LoginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router';
+import VerifyOtpAdmin from '../components/VerifyOtpAdmin';
 
 const AdminLogin = () => {
 
@@ -14,18 +15,28 @@ const AdminLogin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [showVerifyOtp, setShowVerifyOtp] = useState(false);
+    const [emailForOtp, setEmailForOtp] = useState('');
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+        setError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+
+        if (!formData.email || !formData.password) {
+            setError('Email dan password wajib diisi.');
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await fetch('http://127.0.0.1:8000/api/admin/login', {
@@ -39,7 +50,6 @@ const AdminLogin = () => {
 
             const data = await response.json();
 
-
             if (!response.ok) {
                 console.error("HTTP status:", response.status);
                 console.error("Message: ", data.message)
@@ -47,16 +57,13 @@ const AdminLogin = () => {
                 return;
             }
             if (response.ok) {
-                console.log("HTTP status:", response.status);
-                console.log("Message: ", data.message)
-                console.log('Response JSON:', data);
-                localStorage.setItem('token', data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
-                navigate({
-                    pathname: "/admin-dashboard"
-                })
+                setEmailForOtp(data.email)
+                setLoading(false);
+                setShowVerifyOtp(true)
+                return;
             }
-            alert('Login berhasil!');
+
+            setFormData({});
         } catch (err) {
             if (err.response) {
                 setError(err.response.data.message);
@@ -68,11 +75,15 @@ const AdminLogin = () => {
         }
     };
 
+    if (showVerifyOtp) {
+        return <VerifyOtpAdmin email={emailForOtp}/>
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
                 <div>
-                    <img src={LoginImg} alt="" className="w-full max-h-40 object-contain mb-4" />
+                    <img src={LoginImg} alt="" className="w-full max-w-[100px] mx-auto object-contain mb-10" />
                     <h1 className="text-2xl font-bold mb-6 text-center">Please Login</h1>
                 </div>
                 <form onSubmit={handleSubmit}>

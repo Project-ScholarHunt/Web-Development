@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import loginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router'
+import Loading from '../components/Loading'
+import VerifyOtp from '../components/VerifyOtp'
 
 const Login = () => {
   const navigation = useNavigate()
   const [formData, setFormData] = useState({})
+  const [showVerifyOtp, setShowVerifyOtp] = useState(false);
+  const [emailForOtp, setEmailForOtp] = useState('');
 
   function toRegister() {
     navigation({
@@ -12,8 +16,20 @@ const Login = () => {
     })
   }
 
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
+    setError('');
+
+    if (!formData.email || !formData.password) {
+      setError('Email dan password wajib diisi.');
+      setLoading(false);
+      return;
+    }
 
     try {
       console.log("Sending Request...")
@@ -25,34 +41,38 @@ const Login = () => {
         },
         body: JSON.stringify(formData)
       });
-      console.log("HTTP status:", response.status);
 
       const data = await response.json();
       console.log('Response JSON:', data);
 
       if (!response.ok) {
-        console.warn('API returned error status:', data);
+        setError(data.message);
         throw new Error(data.message || 'Something went wrong!');
       }
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", data.user);
-        navigation({
-          pathname: "/"
-        })
+        setEmailForOtp(data.email)
+        setLoading(false);
+        setShowVerifyOtp(true)
+        return;
       }
 
       setFormData({});
     } catch (error) {
-      console.error('Catch error:', error.message);
+      setError("Network error. Please try again later.")
+      setLoading(false)
     }
+  }
+
+  if (showVerifyOtp) {
+    return <VerifyOtp email={emailForOtp} />
   }
 
   const handleChange = (e) => {
     const obj = e.target.name;
     const value = e.target.value;
     setFormData(values => ({ ...values, [obj]: value }))
+    setError('');
   }
 
   return (
@@ -78,9 +98,22 @@ const Login = () => {
                 className='focus:outline-blue-500 p-2 rounded border'
                 value={formData.password || ""}
                 onChange={handleChange} />
+              {error && (
+                <div className="border border-red-400 bg-red-100 text-red-700 px-4 py-3 rounded mb-4">
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
-                className='bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white p-2 tracking-wider rounded mt-5'>Login</button>
+                disabled={loading}
+                className={`w-full hover:cursor-pointer text-white py-2 rounded-lg transition duration-200 ${loading ? 'bg-blue-500 opacity-50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'}`}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    Logging in...
+                  </div>
+                ) : 'Login'}
+              </button>
             </form>
             <button
               onClick={toRegister}
