@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
@@ -11,34 +11,64 @@ const ScholarshipsPage = () => {
     const [selectedScholarship, setSelectedScholarship] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [applicationStatus, setApplicationStatus] = useState({});
 
     const location = useLocation();
+    const navigate = useNavigate();
     const queryParams = new URLSearchParams(location.search);
     const scholarshipId = queryParams.get('id');
     const searchTerm = queryParams.get('search');
+
+    const fetchApplicationStatus = useCallback(async (scholarshipList) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.log('No token found, skipping application status fetch');
+            return;
+        }
+        if (!scholarshipList || scholarshipList.length === 0) {
+            console.log('Scholarship list is empty, skipping application status fetch');
+            return;
+        }
+
+        const statusPromises = scholarshipList.map(async (scholarship) => {
+            try {
+                const statusResponse = await axios.get(`http://127.0.0.1:8000/api/applicants/check/${scholarship.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                return { id: scholarship.id, applied: statusResponse.data.applied };
+            } catch (err) {
+                console.error(`Error checking status for scholarship ${scholarship.id}:`, err.response?.data || err.message);
+                return { id: scholarship.id, applied: false };
+            }
+        });
+
+        const statuses = await Promise.all(statusPromises);
+        const statusMap = statuses.reduce((acc, curr) => {
+            acc[curr.id] = curr.applied;
+            return acc;
+        }, {});
+        setApplicationStatus(statusMap);
+    }, []);
 
     useEffect(() => {
         const fetchScholarships = async () => {
             try {
                 setLoading(true);
 
+                let response;
                 if (scholarshipId) {
-                    const response = await axios.get(`http://127.0.0.1:8000/api/scholarships/${scholarshipId}`);
+                    response = await axios.get(`http://127.0.0.1:8000/api/scholarships/${scholarshipId}`);
                     setScholarships([response.data]);
                     setSelectedScholarship(response.data);
-                }
-                else if (searchTerm) {
-                    const response = await axios.get(`http://127.0.0.1:8000/api/scholarships/search/${encodeURIComponent(searchTerm)}`);
+                } else if (searchTerm) {
+                    response = await axios.get(`http://127.0.0.1:8000/api/scholarships/search/${encodeURIComponent(searchTerm)}`);
                     setScholarships(response.data);
-
                     if (response.data.length > 0) {
                         setSelectedScholarship(response.data[0]);
                     }
-                }
-                else {
-                    const response = await axios.get('http://127.0.0.1:8000/api/scholarships');
+                } else {
+                    response = await axios.get('http://127.0.0.1:8000/api/scholarships');
                     setScholarships(response.data);
-
                     if (response.data.length > 0) {
                         setSelectedScholarship(response.data[0]);
                     }
@@ -54,16 +84,28 @@ const ScholarshipsPage = () => {
         fetchScholarships();
     }, [scholarshipId, searchTerm]);
 
+    useEffect(() => {
+        if (scholarships.length > 0) {
+            fetchApplicationStatus(scholarships);
+        }
+    }, [scholarships, fetchApplicationStatus]);
+
+    useEffect(() => {
+        if (location.state?.refresh && scholarships.length > 0) {
+            fetchApplicationStatus(scholarships);
+            navigate(location.pathname + location.search, { replace: true, state: {} });
+        }
+    }, [location.state, scholarships, navigate, location.pathname, location.search, fetchApplicationStatus]);
+
     const formatTimeLimit = (timeLimit) => {
         if (!timeLimit) return 'N/A';
-
         try {
             if (typeof timeLimit === 'string' && timeLimit.includes('-')) {
                 const date = new Date(timeLimit);
                 return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
                 });
             }
             return timeLimit;
@@ -72,21 +114,29 @@ const ScholarshipsPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <Loading />
-        );
-    }
+    const handleApplyClick = () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login or register to apply for this scholarship.');
+            navigate('/login');
+            return;
+        }
 
-    if (error) {
-        return (
-            <Error error={error}/>
-        );
-    }
+        if (selectedScholarship) {
+            if (applicationStatus[selectedScholarship.id]) {
+                alert('You have already registered for this scholarship.');
+            } else {
+                navigate(`/apply?scholarship_id=${selectedScholarship.id}`);
+            }
+        }
+    };
 
+    if (loading) return <Loading />;
+    if (error) return <Error error={error} />;
     if (scholarships.length === 0) {
         return (
             <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+                <Navbar />
                 <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-bold mb-2">No Scholarships Found</h2>
@@ -97,24 +147,24 @@ const ScholarshipsPage = () => {
                         )}
                     </div>
                 </div>
+                <Footer />
             </div>
         );
     }
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
+            <Navbar />
             <main className="flex-grow container mx-auto px-6 py-[15vh]">
-                <h1 className="text-3xl font-bold text-white mb-6">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6">
                     {searchTerm ? `Search Results for "${searchTerm}"` : "Scholarships"}
                 </h1>
                 <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left Panel - Scholarship List - Only show if we're not looking at a specific scholarship */}
                     {!scholarshipId && (
                         <div className="w-full md:w-1/3 bg-white rounded-lg shadow-md p-4 h-[70vh] overflow-y-auto scrollbar-custom">
                             <h2 className="text-xl font-semibold mb-4 text-gray-800">
                                 {searchTerm ? `Found ${scholarships.length} scholarships` : "Available Scholarships"}
                             </h2>
-
                             {scholarships.map((scholarship) => (
                                 <div
                                     key={scholarship.id}
@@ -135,7 +185,6 @@ const ScholarshipsPage = () => {
                                                 }}
                                             />
                                         </div>
-
                                         <div className="ml-4">
                                             <h3 className="font-medium">{scholarship.scholarshipName}</h3>
                                             <p className="text-sm text-gray-600">{scholarship.partner}</p>
@@ -151,10 +200,8 @@ const ScholarshipsPage = () => {
                         </div>
                     )}
 
-                    {/* Right Panel - Scholarship Detail */}
                     {selectedScholarship && (
                         <div className={`w-full ${!scholarshipId ? 'md:w-4/5' : ''} bg-white rounded-sm shadow-md overflow-hidden`}>
-                            {/* Header with Thumbnail */}
                             <div className="relative h-64 overflow-hidden">
                                 <img
                                     src={selectedScholarship.thumbnail || '/placeholder-thumbnail.png'}
@@ -172,9 +219,7 @@ const ScholarshipsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Detail Content - Scrollable */}
                             <div className="p-6 h-[calc(70vh-16rem)] overflow-y-auto">
-                                {/* Quick Info */}
                                 <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div className="bg-blue-50 rounded-lg p-4">
                                         <p className="text-sm text-gray-500">Quota</p>
@@ -186,7 +231,6 @@ const ScholarshipsPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Description */}
                                 <div className="mb-6">
                                     <h2 className="text-xl font-bold mb-2">Description</h2>
                                     <div className="text-gray-600">
@@ -194,7 +238,6 @@ const ScholarshipsPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Terms and Conditions */}
                                 <div className="mb-6">
                                     <h2 className="text-xl font-bold mb-2">Terms and Conditions</h2>
                                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -202,17 +245,36 @@ const ScholarshipsPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Apply Button */}
                                 <div className="mt-6 flex justify-center">
-                                    <button className="bg-blue-500 hover:cursor-pointer hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg">
-                                        Apply for Scholarship
-                                    </button>
+                                    {applicationStatus[selectedScholarship.id] === undefined ? (
+                                        <button
+                                            disabled
+                                            className="bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full shadow-lg cursor-wait animate-pulse" // Style untuk loading
+                                        >
+                                            Loading...
+                                        </button>
+                                    ) : applicationStatus[selectedScholarship.id] ? (
+                                        <button
+                                            disabled
+                                            className="bg-gray-400 text-white font-bold py-3 px-8 rounded-full shadow-lg cursor-not-allowed"
+                                        >
+                                            Registered
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleApplyClick}
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors"
+                                        >
+                                            Apply for Scholarship
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
             </main>
+
         </div>
     );
 };

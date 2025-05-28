@@ -7,11 +7,32 @@ use App\Http\Middleware\TokenValidation;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ApplicantsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
     Route::post('/login', [UserController::class, 'loginUser']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/users/logout', [UserController::class, 'logout']);
+
+    Route::get('/user/check-token', function (Request $request) {
+        return response()->json([
+            'message' => 'Token and email are valid',
+        ]);
+    })->middleware(TokenValidation::class);
+
+    Route::get('/user', [UserController::class, 'getUser']);
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
+
+    Route::post('/apply', [ApplicantsController::class, 'store']);
+    Route::get('/applicants/check/{scholarshipId}', [ApplicantsController::class, 'checkApplication']);
+    Route::get('/my-applications', [ApplicantsController::class, 'myApplications']);
 });
 
 Route::get('/email/verify-register/{token}', [UserController::class, 'verifyRegistration']);
@@ -26,8 +47,21 @@ Route::middleware(['auth:sanctum', TokenValidation::class])->get('/user/check-to
     ]);
 });
 
-Route::middleware(['auth:sanctum', EnsureAdmin::class])->get('/admin/check-token', function (Request $request) {
-    return response()->json(['message' => 'Admin token is valid']);
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+        Route::post('/logout', [UserController::class, 'logout']);
+        Route::get('/check-token', function (Request $request) {
+            return response()->json(['message' => 'Admin token is valid']);
+        });
+
+        Route::prefix('scholarships')->group(function () {
+            Route::post('/', [ScholarshipsController::class, 'store']);
+            Route::put('/{id}', [ScholarshipsController::class, 'update']);
+            Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
+        });
+
+        Route::get('/applicants', [ApplicantsController::class, 'index']);
+        Route::put('/applicants/{applicantId}/status', [ApplicantsController::class, 'updateStatus']);
+    });
 });
 
 Route::prefix('scholarships')->group(function () {
@@ -37,18 +71,6 @@ Route::prefix('scholarships')->group(function () {
     Route::get('/search/{term}', [ScholarshipsController::class, 'search']);
 });
 
-Route::middleware(['auth:sanctum', EnsureAdmin::class])->prefix('scholarships')->group(function () {
-    Route::post('/', [ScholarshipsController::class, 'store']);
-    Route::put('/{id}', [ScholarshipsController::class, 'update']);
-    Route::delete('/{id}', [ScholarshipsController::class, 'destroy']);
-});
-
-// Pastikan pakai auth:sanctum atau auth:api sesuai login-mu
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
-});
-
 Route::post('/verify-otp/user', [UserController::class, 'verifyUserOtp']);
 Route::post('/verify-otp/admin', [UserController::class, 'verifyAdminOtp']);
+

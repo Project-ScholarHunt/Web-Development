@@ -170,7 +170,7 @@ const ApplicationTimeline = () => {
                 {/* Step 5 */}
                 <div className="relative flex items-start space-x-6">
                     <div className="z-50 border border-[#357ABD] rounded-full min-w-10 min-h-10 flex items-center justify-center text-[#357ABD] font-medium text-sm bg-white shadow-md transition-all duration-300 ease-in-out hover:scale-110 leading-none select-none">
-                        <i class="ri-check-line"></i>
+                        <i className="ri-check-line"></i>
                     </div>
                     <div className="bg-white border border-gray-200 p-5 rounded-xl shadow-md w-full">
                         <h3 className="text-lg font-bold text-[#357ABD] mb-2">Receive Result via Email</h3>

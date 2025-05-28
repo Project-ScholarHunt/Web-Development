@@ -5,10 +5,11 @@ import AdminScholarships from '../components/AdminScholarships';
 import AdminApplicants from '../components/AdminApplicants';
 import AdminAnalytics from '../components/AdminAnalytics';
 import NotFound from '../pages/notfound'
+import Loading from '../components/Loading'
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [currentSection, setCurrentSection] = useState('scholarships');
+    const [currentSection, setCurrentSection] = useState('unauthorized');
     const [isAuthorized, setIsAuthorized] = useState(false)
 
     const toggleMobileMenu = () => {
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
             }
         })();
         if (isAdmin) {
+            setCurrentSection('loading')
             fetch("http://localhost:8000/api/admin/check-token", {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -38,6 +40,7 @@ const AdminDashboard = () => {
                     if (data.message === "Admin token is valid") {
                         console.log("Welcome admin");
                         setIsAuthorized(true)
+                        setCurrentSection('scholarships')
                     } else {
                         setCurrentSection('unauthorized')
                     }
@@ -46,7 +49,6 @@ const AdminDashboard = () => {
         }
     }, []);
 
-    // Render content berdasarkan section yang dipilih
     const renderContent = () => {
         switch (currentSection) {
             case 'scholarships':
@@ -67,6 +69,8 @@ const AdminDashboard = () => {
                 </div>;
             case 'unauthorized':
                 return <NotFound />
+            case 'loading':
+                return <Loading />
             default:
                 return <AdminScholarships />;
         }
