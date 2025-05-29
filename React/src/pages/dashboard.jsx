@@ -173,7 +173,7 @@ const Dashboard = () => {
                             className="text-lg hover:text-blue-700 transition-colors hover:cursor-pointer flex items-center"
                         >
                             See more
-                            <i class="ri-arrow-right-s-line text-xl"></i>
+                            <i className="ri-arrow-right-s-line text-xl"></i>
                         </button>
                     </div>
 
