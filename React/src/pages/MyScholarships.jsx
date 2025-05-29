@@ -26,7 +26,7 @@ const MyScholarshipsPage = () => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const email = localStorage.getItem('userEmail');
+            const email = localStorage.getItem('user');
             if (!token || !email) {
                 setError('No authentication token found. Please log in.');
                 return;
@@ -100,11 +100,11 @@ const MyScholarshipsPage = () => {
                     Authorization: `Bearer ${currentToken}`,
                 },
             });
-            localStorage.setItem('token', response.data.token); // Update token in localStorage
+            localStorage.setItem('token', response.data.token);
         } catch (err) {
             console.error('Token refresh failed:', err);
             localStorage.removeItem('token');
-            localStorage.removeItem('userEmail'); // Clear email if token refresh fails
+            localStorage.removeItem('userEmail');
         }
     };
 
@@ -115,7 +115,7 @@ const MyScholarshipsPage = () => {
             if (document.visibilityState === 'visible') {
                 fetchApplications();
             }
-        }, 120000); // Increase to 2 minutes
+        }, 120000);
 
         const handleStatusUpdate = () => {
             fetchApplications();
@@ -161,7 +161,6 @@ const MyScholarshipsPage = () => {
                     setSelectedApplication(updated);
                 }
             } catch (err) {
-                // Special handling for authentication errors
                 if (err.response && err.response.status === 401) {
                     setError('Your session has expired. Please log in again.');
                 } else {
@@ -172,10 +171,9 @@ const MyScholarshipsPage = () => {
         }
     };
 
-    // Handle session expiration error - show login button if token error
     if (error && error.includes('session has expired')) {
         return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+            <div className="min-h-screen flex flex-col bg-gray-200">
                 <main className="flex-grow container mx-auto px-6 py-[15vh]">
                     <div className="bg-white rounded-lg shadow-md p-8 text-center">
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">Session Expired</h2>
@@ -190,9 +188,9 @@ const MyScholarshipsPage = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
+        <div className="min-h-screen flex flex-col bg-gray-300">
             <main className="flex-grow container mx-auto px-6 py-[15vh]">
-                <h1 className="text-3xl font-bold text-white mb-6">My Scholarships</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-6">My Scholarships</h1>
 
                 {error && (
                     <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">

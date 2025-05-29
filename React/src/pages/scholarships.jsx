@@ -246,21 +246,35 @@ const ScholarshipsPage = () => {
                                 </div>
 
                                 <div className="mt-6 flex justify-center">
-                                    <button
-                                        onClick={handleApplyClick}
-                                        className={`bg-blue-500 text-white font-bold py-3 px-8 rounded-full transition-colors shadow-lg ${applicationStatus[selectedScholarship.id] ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : 'hover:bg-blue-700'
-                                            }`}
-                                        disabled={applicationStatus[selectedScholarship.id] || false}
-                                    >
-                                        {applicationStatus[selectedScholarship.id] ? 'Registered' : 'Apply for Scholarship'}
-                                    </button>
+                                    {applicationStatus[selectedScholarship.id] === undefined ? (
+                                        <button
+                                            disabled
+                                            className="bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full shadow-lg cursor-wait animate-pulse" // Style untuk loading
+                                        >
+                                            Loading...
+                                        </button>
+                                    ) : applicationStatus[selectedScholarship.id] ? (
+                                        <button
+                                            disabled
+                                            className="bg-gray-400 text-white font-bold py-3 px-8 rounded-full shadow-lg cursor-not-allowed"
+                                        >
+                                            Registered
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleApplyClick}
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors"
+                                        >
+                                            Apply for Scholarship
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
             </main>
-            <Footer />
+
         </div>
     );
 };
