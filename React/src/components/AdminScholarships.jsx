@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CrudScholarshipForm from './CrudScholarshipForm';
 import CrudScholarshipTable from './CrudScholarshipTable';
+import ScholarshipApplicants from '../pages/ScholarshipApplicants';
 
 const AdminScholarships = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -23,6 +24,7 @@ const AdminScholarships = () => {
         logoUrl: '',
         thumbnailUrl: ''
     });
+    const [viewingApplicantsForId, setViewingApplicantsForId] = useState(null);
 
     const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -234,7 +236,6 @@ const AdminScholarships = () => {
             console.error('Invalid scholarship ID for deletion');
             return;
         }
-
         if (window.confirm('Are you sure you want to delete this scholarship?')) {
             try {
                 await axios.delete(`${API_BASE_URL}/scholarships/${id}`, {
@@ -252,18 +253,35 @@ const AdminScholarships = () => {
         }
     };
 
+    const handleViewApplicants = (scholarshipId) => {
+        console.log("Viewing applicants for scholarship ID:", scholarshipId);
+        setViewingApplicantsForId(scholarshipId);
+    };
+
+    const handleBackToScholarshipList = () => {
+        setViewingApplicantsForId(null);
+    };
+
+    if (viewingApplicantsForId) {
+        return (
+            <ScholarshipApplicants
+                scholarshipId={viewingApplicantsForId}
+                onBack={handleBackToScholarshipList}
+            />
+        );
+    }
+
+
     return (
         <div>
             <h1 className="text-2xl font-semibold mb-4">Manage Scholarships</h1>
 
-            {/* Error Message */}
             {error && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
                     <p>{error}</p>
                 </div>
             )}
 
-            {/* Loading Indicator */}
             {isLoading && (
                 <div className="text-center my-4">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
@@ -271,7 +289,6 @@ const AdminScholarships = () => {
                 </div>
             )}
 
-            {/* Search Bar */}
             <div className="mb-6">
                 <input
                     type="text"
@@ -297,6 +314,7 @@ const AdminScholarships = () => {
                 handleEdit={handleEdit}
                 handleDelete={handleDelete}
                 isLoading={isLoading}
+                onViewApplicants={handleViewApplicants}
             />
         </div>
     );

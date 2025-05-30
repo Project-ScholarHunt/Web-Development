@@ -12,6 +12,7 @@ import Apply from './pages/ApplyScholarship.jsx'
 import MyScholarships from './pages/MyScholarships.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
 import MainLayout from './pages/MainLayout.jsx'
+import ScholarshipApplicants from './pages/ScholarshipApplicants.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -22,7 +23,8 @@ createRoot(document.getElementById('root')).render(
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='*' element={<Notfound />} />
-        <Route path='/admin-dashboard' element={<AdminDashboard />} />
+        <Route path='/admin-dashboard' element={<AdminDashboard />}/>
+        <Route path='scholarship-applicants/:id' element={<ScholarshipApplicants/>}/>
         <Route path='/apply-scholarship' element={<Apply />} />
         <Route path='/adminlogin' element={<AdminLogin />} />
 
