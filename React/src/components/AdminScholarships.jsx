@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CrudScholarshipForm from './CrudScholarshipForm';
 import CrudScholarshipTable from './CrudScholarshipTable';
-import ScholarshipApplicants from '../pages/ScholarshipApplicants';
+import ScholarshipApplicants from './ScholarshipApplicants';
 
 const AdminScholarships = () => {
     const [scholarships, setScholarships] = useState([]);

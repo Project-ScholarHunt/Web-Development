@@ -6,7 +6,7 @@ import AdminApplicants from '../components/AdminApplicants';
 import AdminAnalytics from '../components/AdminAnalytics';
 import NotFound from '../pages/notfound'
 import Loading from '../components/Loading'
-import ScholarshipApplicants from './ScholarshipApplicants';
+import ScholarshipApplicants from '../components/ScholarshipApplicants';
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

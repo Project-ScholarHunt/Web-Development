@@ -12,7 +12,7 @@ import Apply from './pages/ApplyScholarship.jsx'
 import MyScholarships from './pages/MyScholarships.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
 import MainLayout from './pages/MainLayout.jsx'
-import ScholarshipApplicants from './pages/ScholarshipApplicants.jsx'
+import ScholarshipApplicants from './components/ScholarshipApplicants.jsx'
 
 
 createRoot(document.getElementById('root')).render(
