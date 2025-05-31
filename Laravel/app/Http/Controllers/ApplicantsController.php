@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Applicants;
-use App\Models\Scholarships;
+use App\Models\Scholarships; // Pastikan model Scholarships diimpor
 use App\Models\Selections;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; // Untuk dokumen
+use Illuminate\Support\Facades\URL; // Untuk asset() helper
 
 class ApplicantsController extends Controller
 {
@@ -49,6 +51,8 @@ class ApplicantsController extends Controller
             }
 
             try {
+                // Dokumen disimpan ke storage/app/public/documents/
+                // URL akan diakses melalui symlink public/storage -> storage/app/public
                 $recommendationLetterPath = $request->file('recommendation_letter')->store('documents', 'public');
                 $statementLetterPath = $request->file('statement_letter')->store('documents', 'public');
                 $gradeTranscriptPath = $request->file('grade_transcript')->store('documents', 'public');
@@ -124,70 +128,115 @@ class ApplicantsController extends Controller
                 ->where('user_id', $user->id)
                 ->get()
                 ->map(function ($applicant) {
-                    Log::info('Raw registration_date:', [$applicant->registration_date]);
-
                     $registrationDate = $applicant->registration_date;
-                    if ($registrationDate instanceof \DateTime) {
+                    if ($registrationDate instanceof \DateTimeInterface) { // More generic type hint
                         $registrationDate = \Carbon\Carbon::instance($registrationDate);
                     } elseif (is_string($registrationDate) && !empty(trim($registrationDate))) {
-                        $registrationDate = \Carbon\Carbon::parse($registrationDate);
+                        try {
+                            $registrationDate = \Carbon\Carbon::parse($registrationDate);
+                        } catch (\Exception $e) {
+                            Log::warning('Invalid registration_date format for applicant ID: ' . $applicant->applicant_id . ', using current date. Error: ' . $e->getMessage());
+                            $registrationDate = \Carbon\Carbon::now();
+                        }
                     } else {
                         $registrationDate = \Carbon\Carbon::now();
-                        Log::warning('Invalid registration_date for applicant ID: ' . $applicant->applicant_id . ', using current date');
+                        Log::warning('Invalid or empty registration_date for applicant ID: ' . $applicant->applicant_id . ', using current date');
                     }
+
+                    // LOGO HANDLING: Menggunakan asset() karena file ada di public/storage/...
+                    $logoUrl = 'https://via.placeholder.com/150/CCCCCC/FFFFFF?Text=LogoDefault';
+                    if ($applicant->scholarships && $applicant->scholarships->logo) {
+                        // $applicant->scholarships->logo harusnya menyimpan path seperti 'scholarships/logos/namafile.png'
+                        $logoPathInDb = $applicant->scholarships->logo;
+                        $assetPath = 'storage/' . $logoPathInDb; // Path relatif ke public/
+                        $logoUrl = asset($assetPath);
+                        Log::info('MyApplications - Scholarship: ' . $applicant->scholarships->scholarship_name . ' - DB logo path: [' . $logoPathInDb . '] - Generated asset URL: ' . $logoUrl);
+
+                        // Opsional: periksa apakah file fisik ada
+                        // if (!file_exists(public_path($assetPath))) {
+                        //     Log::warning('MyApplications - Logo file NOT FOUND at physical path: ' . public_path($assetPath));
+                        //     // $logoUrl = 'https://via.placeholder.com/150/FF0000/FFFFFF?Text=LogoNotFound';
+                        // }
+                    } elseif ($applicant->scholarships) {
+                        Log::warning('MyApplications - Scholarship logo path is NULL in DB for scholarship ID: ' . $applicant->scholarships->scholarship_id);
+                        $logoUrl = 'https://via.placeholder.com/150/FFFF00/000000?Text=LogoPathNull';
+                    } else {
+                        Log::warning('MyApplications - Scholarship data is NULL for applicant ID: ' . $applicant->applicant_id);
+                        $logoUrl = 'https://via.placeholder.com/150/00FFFF/000000?Text=NoScholarshipData';
+                    }
+
+                    // DOCUMENT HANDLING: Menggunakan Storage::disk('public')->url() karena file di storage/app/public/documents/
+                    $recommendationDocPath = $applicant->recommendation_letter ? Storage::disk('public')->url($applicant->recommendation_letter) : null;
+                    $statementDocPath = $applicant->statement_letter ? Storage::disk('public')->url($applicant->statement_letter) : null;
+                    $gradeTranscriptDocPath = $applicant->grade_transcript ? Storage::disk('public')->url($applicant->grade_transcript) : null;
+
 
                     return [
                         'id' => $applicant->applicant_id,
                         'scholarshipId' => $applicant->scholarship_id,
-                        'name' => $applicant->scholarships->name ?? 'N/A',
+                        'name' => $applicant->scholarships->scholarship_name ?? 'N/A',
                         'partner' => $applicant->scholarships->partner ?? 'N/A',
-                        'logo' => $applicant->scholarships->logo ?? 'https://via.placeholder.com/150',
+                        'logo' => $logoUrl,
                         'status' => $applicant->selection->status ?? 'Pending',
                         'applicationDate' => $registrationDate->toDateString(),
                         'progressStage' => $this->getProgressStage($applicant->selection->status ?? 'Pending'),
                         'applicantData' => [
                             'studentId' => $applicant->nim,
-                            'nextSemester' => $applicant->semester,
+                            'nextSemester' => $applicant->semester, // Frontend menggunakan 'nextSemester'
                             'major' => $applicant->major,
                             'gpa' => $applicant->ipk,
                         ],
                         'uploadedDocuments' => [
-                            ['name' => 'Recommendation_Letter.pdf', 'size' => '420KB', 'uploadedAt' => $registrationDate->toDateString()],
-                            ['name' => 'Statement_Letter.pdf', 'size' => '350KB', 'uploadedAt' => $registrationDate->toDateString()],
-                            ['name' => 'Grade_Transcript.pdf', 'size' => '1.2MB', 'uploadedAt' => $registrationDate->toDateString()],
+                            ['name' => 'Recommendation Letter', 'path' => $recommendationDocPath, 'uploadedAt' => $registrationDate->toDateString()],
+                            ['name' => 'Statement Letter', 'path' => $statementDocPath, 'uploadedAt' => $registrationDate->toDateString()],
+                            ['name' => 'Grade Transcript', 'path' => $gradeTranscriptDocPath, 'uploadedAt' => $registrationDate->toDateString()],
                         ],
                     ];
                 });
 
             return response()->json($applications);
         } catch (\Exception $e) {
-            Log::error('Error in myApplications: ' . $e->getMessage());
+            Log::error('Error in myApplications: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return response()->json(['message' => 'Failed to load applications. Please try again.'], 500);
         }
     }
 
     private function getProgressStage($status)
     {
-        switch (strtolower($status)) {
+        switch (strtolower($status ?? '')) { // Tambahkan null coalescing dan strtolower
             case 'pending':
                 return 0;
-            case 'under review':
+            case 'under review': // Spasi penting
                 return 1;
             case 'interview':
                 return 2;
             case 'accepted':
             case 'rejected':
+            case 'withdrawn': // Tambahkan status withdrawn jika ada
                 return 3;
             default:
                 return 0;
         }
     }
 
-    public function index(Request $request)
+    public function index(Request $request) // Admin view: list all applicants
     {
         $applicants = Applicants::with(['user', 'scholarships', 'selection'])
             ->get()
             ->map(function ($applicant) {
+                // LOGO HANDLING (Sama seperti di myApplications)
+                $scholarshipLogoUrl = 'https://via.placeholder.com/150/DDDDDD/FFFFFF?Text=AdminLogoDefault';
+                if ($applicant->scholarships && $applicant->scholarships->logo) {
+                    $logoPathInDb = $applicant->scholarships->logo;
+                    $assetPath = 'storage/' . $logoPathInDb;
+                    $scholarshipLogoUrl = asset($assetPath);
+                }
+
+                // DOCUMENT HANDLING (Sama seperti di myApplications)
+                $recommendationDocUrl = $applicant->recommendation_letter ? Storage::disk('public')->url($applicant->recommendation_letter) : null;
+                $statementDocUrl = $applicant->statement_letter ? Storage::disk('public')->url($applicant->statement_letter) : null;
+                $gradeTranscriptDocUrl = $applicant->grade_transcript ? Storage::disk('public')->url($applicant->grade_transcript) : null;
+
                 return [
                     'id' => $applicant->applicant_id,
                     'name' => $applicant->fullname,
@@ -201,16 +250,18 @@ class ApplicantsController extends Controller
                     'city' => $applicant->city,
                     'province' => $applicant->province,
                     'postal_code' => $applicant->postal_code,
-                    'recommendation_letter' => $applicant->recommendation_letter,
-                    'statement_letter' => $applicant->statement_letter,
-                    'grade_transcript' => $applicant->grade_transcript,
+                    'recommendation_letter' => $recommendationDocUrl,
+                    'statement_letter' => $statementDocUrl,
+                    'grade_transcript' => $gradeTranscriptDocUrl,
                     'scholarship_id' => $applicant->scholarship_id,
                     'scholarship' => [
-                        'id' => $applicant->scholarship_id,
-                        'scholarshipName' => $applicant->scholarships->name ?? 'N/A',
+                        'id' => $applicant->scholarships->scholarship_id ?? null,
+                        'scholarshipName' => $applicant->scholarships->scholarship_name ?? 'N/A',
+                        'logo' => $scholarshipLogoUrl,
                     ],
-                    'status' => $applicant->selection->status ?? 'pending',
-                    'created_at' => $applicant->created_at->toISOString(),
+                    'status' => $applicant->selection->status ?? 'pending', // Frontend mungkin pakai 'pending' huruf kecil
+                    'created_at' => $applicant->created_at ? $applicant->created_at->toISOString() : null,
+                    'registration_date' => $applicant->registration_date ? \Carbon\Carbon::parse($applicant->registration_date)->toISOString() : null,
                 ];
             });
 
@@ -221,43 +272,78 @@ class ApplicantsController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:Pending,Under Review,Interview,Accepted,Rejected',
+                'status' => 'required|in:Pending,Under Review,Interview,Accepted,Rejected,Withdrawn', // Tambahkan Withdrawn jika perlu
             ]);
 
             $selection = Selections::where('applicant_id', $applicantId)->first();
             if (!$selection) {
                 $applicant = Applicants::find($applicantId);
                 if (!$applicant) {
-                    Log::warning('Applicant not found for applicant_id: ' . $applicantId);
+                    Log::warning('Applicant not found for applicant_id: ' . $applicantId . ' during status update.');
                     return response()->json(['message' => 'Applicant not found.'], 404);
                 }
-
+                // Jika record selection belum ada, buat baru (ini seharusnya tidak terjadi jika 'store' selalu membuat record Selections)
                 $selection = Selections::create([
                     'applicant_id' => $applicantId,
-                    'status' => 'Pending',
-                    'note' => '',
+                    'status' => $validated['status'], // Langsung set status yang baru
+                    'note' => $request->input('note', ''), // Opsional: tambahkan note
                 ]);
-                Log::info('Created new Selections record for applicant_id: ' . $applicantId);
-            }
-
-            if (!$selection) {
-                Log::error('Failed to create or retrieve Selections record for applicant_id: ' . $applicantId);
-                return response()->json(['message' => 'Failed to process selection record.'], 500);
-            }
-
-            Log::debug('Selection object before update: ' . json_encode($selection->toArray()));
-
-            $success = $selection->update(['status' => $validated['status']]);
-            if (!$success) {
-                Log::error('Failed to update status for applicant_id: ' . $applicantId);
-                return response()->json(['message' => 'Failed to update status.'], 500);
+                Log::info('Created new Selections record during status update for applicant_id: ' . $applicantId);
+            } else {
+                 $updateData = ['status' => $validated['status']];
+                 if ($request->has('note')) {
+                    $updateData['note'] = $request->input('note');
+                 }
+                 $selection->update($updateData);
             }
 
             Log::info('Status updated successfully for applicant_id: ' . $applicantId . ' to ' . $validated['status']);
             return response()->json(['message' => 'Status updated successfully.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error in updateStatus: ' . json_encode($e->errors()));
+            return response()->json(['message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::error('Exception in updateStatus: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to update status. Please try again. Error: ' . $e->getMessage()], 500);
+            Log::error('Exception in updateStatus: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['message' => 'Failed to update status. Please try again.'], 500);
         }
+    }
+
+    public function destroy($applicantId) // Handle withdraw / delete application
+    {
+        return DB::transaction(function () use ($applicantId) {
+            try {
+                $applicant = Applicants::findOrFail($applicantId);
+
+                // Hapus file dokumen dari storage/app/public/documents/
+                if ($applicant->recommendation_letter && Storage::disk('public')->exists($applicant->recommendation_letter)) {
+                    Storage::disk('public')->delete($applicant->recommendation_letter);
+                }
+                if ($applicant->statement_letter && Storage::disk('public')->exists($applicant->statement_letter)) {
+                    Storage::disk('public')->delete($applicant->statement_letter);
+                }
+                if ($applicant->grade_transcript && Storage::disk('public')->exists($applicant->grade_transcript)) {
+                    Storage::disk('public')->delete($applicant->grade_transcript);
+                }
+
+                // Hapus record di tabel selections
+                Selections::where('applicant_id', $applicantId)->delete();
+
+                // Kembalikan kuota beasiswa
+                $scholarship = Scholarships::find($applicant->scholarship_id);
+                if ($scholarship) {
+                    $scholarship->increment('quota');
+                }
+
+                $applicant->delete();
+                Log::info('Application withdrawn/deleted successfully for applicant ID: ' . $applicantId);
+                return response()->json(['message' => 'Application withdrawn successfully.'], 200);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                Log::error('Error withdrawing application - Applicant not found: ' . $applicantId . ' - ' . $e->getMessage());
+                return response()->json(['message' => 'Applicant not found.'], 404);
+            } catch (\Exception $e) {
+                Log::error('Error withdrawing application for ID ' . $applicantId . ': ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+                return response()->json(['message' => 'Failed to withdraw application. Error: ' . $e->getMessage()], 500);
+            }
+        });
     }
 }

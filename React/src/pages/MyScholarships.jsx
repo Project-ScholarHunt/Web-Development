@@ -429,12 +429,18 @@ const MyScholarshipsPage = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center">
-                                                            <span className="text-sm text-gray-500 mr-4">{doc.size}</span>
-                                                            <button className="text-blue-600 hover:text-blue-800">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                                </svg>
-                                                            </button>
+                                                            {/* Jika Anda memiliki ukuran file dari backend, tampilkan di sini */}
+                                                            {/* <span className="text-sm text-gray-500 mr-4">{doc.size}</span> */}
+                                                            {doc.path && ( // Tampilkan tombol unduh hanya jika ada path
+                                                                <a href={doc.path} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                    </svg>
+                                                                </a>
+                                                            )}
+                                                            {!doc.path && ( // Tampilkan teks jika tidak ada file (misalnya, placeholder atau error)
+                                                                <span className="text-sm text-gray-500">No file</span>
+                                                            )}
                                                         </div>
                                                     </li>
                                                 ))}
