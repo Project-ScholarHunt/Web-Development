@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router';
 
-const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading }) => {
+const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading, onViewApplicants  }) => {
     if (items.length === 0 && !isLoading) {
         return (
             <div className="bg-white p-6 rounded shadow-md text-center">
@@ -31,7 +32,12 @@ const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading }) =>
                                         <img className="h-10 w-10 rounded-full object-cover" src={item.logo} alt={item.scholarshipName} />
                                     </div>
                                     <div className="ml-4">
-                                        <div className="text-sm font-medium text-gray-900">{item.scholarshipName}</div>
+                                        <button
+                                            onClick={() => onViewApplicants(item.id)}
+                                            className="text-sm font-medium hover:cursor-pointer text-gray-900 hover:text-indigo-600 focus:outline-none"
+                                        >
+                                            {item.scholarshipName}
+                                        </button>
                                     </div>
                                 </div>
                             </td>
@@ -44,16 +50,16 @@ const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading }) =>
                                 </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button 
-                                    onClick={() => handleEdit(item)} 
-                                    className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                <button
+                                    onClick={() => handleEdit(item)}
+                                    className="text-indigo-600 hover:cursor-pointer hover:text-indigo-950 mr-3"
                                     disabled={isLoading}
                                 >
                                     Edit
                                 </button>
-                                <button 
-                                    onClick={() => handleDelete(item.id)} 
-                                    className="text-red-600 hover:text-red-900"
+                                <button
+                                    onClick={() => handleDelete(item.id)}
+                                    className="text-red-600 hover:cursor-pointer hover:text-red-900"
                                     disabled={isLoading}
                                 >
                                     Delete

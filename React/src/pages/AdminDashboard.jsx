@@ -6,11 +6,22 @@ import AdminApplicants from '../components/AdminApplicants';
 import AdminAnalytics from '../components/AdminAnalytics';
 import NotFound from '../pages/notfound'
 import Loading from '../components/Loading'
+import ScholarshipApplicants from '../components/ScholarshipApplicants';
 
 const AdminDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [currentSection, setCurrentSection] = useState('unauthorized');
     const [isAuthorized, setIsAuthorized] = useState(false)
+    const [viewingApplicantsForId, setViewingApplicantsForId] = useState(null);
+
+    const handleViewApplicants = (scholarshipId) => {
+        console.log("Viewing applicants for scholarship ID:", scholarshipId);
+        setViewingApplicantsForId(scholarshipId);
+    };
+
+    const handleBackToScholarshipList = () => {
+        setViewingApplicantsForId(null);
+    };
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
