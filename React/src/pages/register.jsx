@@ -1,35 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import loginImg from '../assets/img/login.png'
-import { useNavigate, Link } from 'react-router'
+import { useNavigate, Link } from 'react-router-dom'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 const Register = () => {
-  const navigation = useNavigate()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({})
   const [loading, setLoading] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
-  // **Animation on mount**
   useEffect(() => {
-    const token = localStorage.getItem("token") || ""
-    if (!token) {
-      setIsVisible(true)
-      return
-    }
+    setIsVisible(true)
   }, [])
 
   const toLogin = () => {
     setIsVisible(false)
     setTimeout(() => {
-      navigation('/login')
+      navigate('/login')
     }, 300)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // **Validasi Input**
     if (!formData.email || !formData.password || !formData.phone || !formData.name) {
       toast.error('Semua field wajib diisi!', {
         position: "top-right",
@@ -42,7 +36,6 @@ const Register = () => {
       return
     }
 
-    // **Validasi Password Minimal 8 Karakter**
     if (formData.password.length < 8) {
       toast.error('Password harus minimal 8 karakter!', {
         position: "top-right",
@@ -55,7 +48,6 @@ const Register = () => {
       return
     }
 
-    // **Validasi Nomor Telepon 9-13 digit**
     if (formData.phone.length < 9 || formData.phone.length > 13) {
       toast.error('Nomor telepon harus 9-13 digit!', {
         position: "top-right",
@@ -68,7 +60,6 @@ const Register = () => {
       return
     }
 
-    // **Validasi Email Format**
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       toast.error('Format email tidak valid!', {
@@ -110,7 +101,6 @@ const Register = () => {
         throw new Error('Something went wrong!')
       }
 
-      // **Success Toast - Modern & Sleek**
       toast.success('🎉 Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun sebelum login.', {
         position: "top-center",
         autoClose: 5000,
@@ -124,7 +114,6 @@ const Register = () => {
       setFormData({})
       setLoading(false)
 
-      // **Redirect ke login setelah 2 detik**
       setTimeout(() => {
         toLogin()
       }, 2000)
@@ -148,21 +137,16 @@ const Register = () => {
     setFormData(values => ({ ...values, [obj]: value }))
   }
 
-  // **Handler khusus untuk nomor telepon**
   const handlePhoneChange = (e) => {
     const value = e.target.value
 
-    // **Hanya izinkan angka dan batasi maksimal 13 digit**
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 13)
 
     setFormData(values => ({ ...values, phone: numericValue }))
   }
 
-  // **Fungsi untuk mencegah input non-numeric pada keypress**
   const handlePhoneKeyPress = (e) => {
-    // Izinkan: backspace, delete, tab, escape, enter
     if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-      // Izinkan: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
       (e.keyCode === 65 && e.ctrlKey === true) ||
       (e.keyCode === 67 && e.ctrlKey === true) ||
       (e.keyCode === 86 && e.ctrlKey === true) ||
@@ -170,7 +154,6 @@ const Register = () => {
       return
     }
 
-    // Pastikan hanya angka yang diizinkan
     if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
       e.preventDefault()
     }
@@ -178,6 +161,17 @@ const Register = () => {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center p-4'>
+      {/* **Custom CSS for animations** */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}</style>
+
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -323,8 +317,8 @@ const Register = () => {
                   {/* **Phone Indicator** */}
                   {formData.phone && (
                     <div className={`text-xs mt-2 transition-all duration-300 ${formData.phone.length >= 9 && formData.phone.length <= 13
-                      ? 'text-green-600'
-                      : 'text-red-500'
+                        ? 'text-green-600'
+                        : 'text-red-500'
                       }`}>
                       {formData.phone.length >= 9 && formData.phone.length <= 13
                         ? '✓ Phone number is valid'
@@ -338,8 +332,8 @@ const Register = () => {
                   type="submit"
                   disabled={loading}
                   className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 active:scale-95 ${loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
                     }`}
                 >
                   {loading ? (
@@ -384,17 +378,6 @@ const Register = () => {
           </div>
         </div>
       </div>
-
-      {/* **Custom CSS for animations** */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   )
 }
