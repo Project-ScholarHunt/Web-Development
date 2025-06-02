@@ -81,9 +81,9 @@ class UserController extends Controller
             return response()->json(['message' => 'Email or Password is Incorrect'], 401);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(10000000, 99999999);
         $name = $user->name;
-        Cache::put("otp_user_{$user->email}", $otp, now()->addMinutes(5));
+        Cache::put("otp_user_{$user->email}", $otp, now()->addMinutes(1));
 
         Mail::to($user->email)->send(new OtpMail($otp, $name));
 
@@ -110,9 +110,9 @@ class UserController extends Controller
             return response()->json(['message' => 'Access denied.'], 403);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(10000000, 99999999);
         $name = $user->name;
-        Cache::put("otp_admin_{$user->email}", $otp, now()->addMinutes(5));
+        Cache::put("otp_admin_{$user->email}", $otp, now()->addMinutes(1));
 
         Mail::to($user->email)->send(new OtpMail($otp, $name));
 
@@ -125,7 +125,7 @@ class UserController extends Controller
     public function verifyUserOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|digits:6',
+            'otp' => 'required|digits:8',
         ]);
 
         $email = $request->email;
@@ -159,7 +159,7 @@ class UserController extends Controller
     public function verifyAdminOtp(Request $request)
     {
         $request->validate([
-            'otp' => 'required|digits:6',
+            'otp' => 'required|digits:8',
         ]);
 
         $email = $request->email;
