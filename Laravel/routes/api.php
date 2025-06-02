@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Controllers\ScholarshipsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApplicantsController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Route::prefix('users')->group(function () {
@@ -47,6 +48,12 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/applicants', [ApplicantsController::class, 'index']);
         Route::put('/applicants/{applicantId}/status', [ApplicantsController::class, 'updateStatus']);
+        Route::prefix('analytics')->group(function () {
+            Route::get('/scholarships', [AnalyticsController::class, 'getScholarships']);
+            Route::get('/applicants', [AnalyticsController::class, 'getApplicants']);
+            Route::get('/general-stats', [AnalyticsController::class, 'getGeneralStats']); 
+            
+        });
     });
 });
 
@@ -73,3 +80,4 @@ Route::prefix('scholarships')->group(function () {
 
 Route::post('/verify-otp/user', [UserController::class, 'verifyUserOtp']);
 Route::post('/verify-otp/admin', [UserController::class, 'verifyAdminOtp']);
+

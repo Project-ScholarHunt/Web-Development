@@ -5,148 +5,93 @@ import NavbarPNG from '../assets/img/navbar.png';
 const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState("");
+    const [searchKeyword, setSearchKeyword] = useState('');
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-    const [userData, setUserData] = useState({ name: "" });
+    const [userData, setUserData] = useState({ name: 'User' });
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
 
-    // Optimized scroll handler with throttling
+    // Throttled scroll handler
     const handleScroll = useCallback(() => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        setIsScrolled(scrollTop > 50);
+        setIsScrolled(window.scrollY > 50);
     }, []);
 
-    // Setup scroll listener with throttling
     useEffect(() => {
-        let ticking = false;
-
         const scrollListener = () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    handleScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
+            requestAnimationFrame(handleScroll);
         };
-
         window.addEventListener('scroll', scrollListener, { passive: true });
-
-        // Check initial scroll position
         handleScroll();
-
-        return () => {
-            window.removeEventListener('scroll', scrollListener);
-        };
+        return () => window.removeEventListener('scroll', scrollListener);
     }, [handleScroll]);
 
+    // Check authentication status
     const checkAuthStatus = useCallback(async () => {
-        console.log("Check Auth Status:");
-        const token = localStorage.getItem("token");
-        const email = localStorage.getItem("user");
-
+        const token = localStorage.getItem('token');
+        const email = localStorage.getItem('user');
         if (!token || !email) {
             setIsLoggedIn(false);
             return;
         }
 
         try {
-            const response = await fetch("http://localhost:8000/api/user/check-token", {
-                method: "GET",
+            const response = await fetch('http://localhost:8000/api/user/check-token', {
+                method: 'GET',
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "X-User-Email": email,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
+                    Authorization: `Bearer ${token}`,
+                    'X-User-Email': email,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
                 },
             });
-
             if (response.ok) {
                 const data = await response.json();
-                if (data.message === "Token and email are valid") {
+                if (data.message === 'Token and email are valid') {
                     setIsLoggedIn(true);
                     await fetchUserData(token, email);
                 } else {
-                    console.error(data.message);
                     setIsLoggedIn(false);
                 }
             } else {
                 setIsLoggedIn(false);
             }
         } catch (err) {
-            console.error("Auth check error:", err);
+            console.error('Auth check error:', err);
             setIsLoggedIn(false);
         }
     }, []);
 
+    // Fetch user data
     const fetchUserData = async (token, email) => {
-        console.log("Fetching user profile data...");
-
         try {
-            const response = await fetch("http://localhost:8000/api/profile", {
-                method: "GET",
+            const response = await fetch('http://localhost:8000/api/profile', {
+                method: 'GET',
                 headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "X-User-Email": email,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
+                    Authorization: `Bearer ${token}`,
+                    'X-User-Email': email,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
                 },
             });
-
             if (response.ok) {
                 const data = await response.json();
-                console.log("Profile data received:", data);
-                setUserData({ name: data.name || data.user?.name || "User" });
+                setUserData({ name: data.name || data.user?.name || email.split('@')[0] || 'User' });
             } else {
-                console.error("Failed to fetch user data:", response.status);
-                await fetchUserDirectly(token, email);
+                setUserData({ name: email.split('@')[0] || 'User' });
             }
         } catch (err) {
-            console.error("Error fetching user data:", err);
-            await fetchUserDirectly(token, email);
-        }
-    };
-
-    const fetchUserDirectly = async (token, email) => {
-        try {
-            const response = await fetch("http://localhost:8000/api/user", {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "X-User-Email": email,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Direct user data received:", data);
-                setUserData({
-                    name: data.name || data.user?.name || email.split('@')[0] || "User"
-                });
-            } else {
-                const username = email ? email.split('@')[0] : "User";
-                setUserData({ name: username });
-            }
-        } catch (error) {
-            console.error("Error fetching user directly:", error);
-            const username = email ? email.split('@')[0] : "User";
-            setUserData({ name: username });
+            console.error('Error fetching user data:', err);
+            setUserData({ name: email.split('@')[0] || 'User' });
         }
     };
 
     const toggleMobileMenu = useCallback(() => {
-        setIsMobileMenuOpen(prev => !prev);
-        // Close profile dropdown when opening mobile menu
-        if (isProfileDropdownOpen) {
-            setIsProfileDropdownOpen(false);
-        }
-    }, [isProfileDropdownOpen]);
+        setIsMobileMenuOpen((prev) => !prev);
+        setIsProfileDropdownOpen(false);
+    }, []);
 
     const toggleProfileDropdown = useCallback(() => {
-        setIsProfileDropdownOpen(prev => !prev);
+        setIsProfileDropdownOpen((prev) => !prev);
     }, []);
 
     const closeAllMenus = useCallback(() => {
@@ -155,256 +100,262 @@ const Navbar = () => {
     }, []);
 
     const handleLogout = useCallback(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setIsLoggedIn(false);
-        setUserData({ name: "" });
+        setUserData({ name: 'User' });
         closeAllMenus();
-        navigate("/login");
+        navigate('/login');
     }, [navigate, closeAllMenus]);
 
-    const handleSubmit = useCallback((e) => {
-        e.preventDefault();
-        if (searchKeyword.trim() !== "") {
-            navigate(`/scholarships?search=${encodeURIComponent(searchKeyword)}`);
-            setSearchKeyword("");
-            closeAllMenus();
-        }
-    }, [searchKeyword, navigate, closeAllMenus]);
+    const handleSubmit = useCallback(
+        (e) => {
+            e.preventDefault();
+            if (searchKeyword.trim()) {
+                navigate(`/scholarships?search=${encodeURIComponent(searchKeyword)}`);
+                setSearchKeyword('');
+                closeAllMenus();
+            }
+        },
+        [searchKeyword, navigate, closeAllMenus]
+    );
 
     const handleLinkClick = useCallback(() => {
         closeAllMenus();
     }, [closeAllMenus]);
 
-    // Check auth status on mount
     useEffect(() => {
         checkAuthStatus();
     }, [checkAuthStatus]);
 
-    // Close menus when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isMobileMenuOpen || isProfileDropdownOpen) {
-                const navbar = event.target.closest('nav');
-                if (!navbar) {
-                    closeAllMenus();
-                }
+            if ((isMobileMenuOpen || isProfileDropdownOpen) && !event.target.closest('nav')) {
+                closeAllMenus();
             }
         };
-
         document.addEventListener('click', handleClickOutside);
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
+        return () => document.removeEventListener('click', handleClickOutside);
     }, [isMobileMenuOpen, isProfileDropdownOpen, closeAllMenus]);
 
     return (
-        <div className={`fixed top-0 w-full z-50 transition-all duration-300 ease-in-out ${isScrolled
-                ? 'bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200/20'
-                : 'bg-transparent'
-            }`}>
-            <nav className="relative py-4 px-5 w-full">
-                <div className="flex flex-row items-center justify-between w-full">
-                    {/* Logo - Always visible */}
-                    <div className="flex items-center">
-                        <Link to="/" className="flex items-center h-[3vh]" onClick={handleLinkClick}>
-                            <img
-                                src={NavbarPNG}
-                                alt="logo scholarhunt"
-                                className="max-h-[45px] transition-opacity duration-300"
-                            />
-                        </Link>
-                    </div>
+        <div
+            className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-lg shadow-md' : 'bg-transparent'
+                }`}
+        >
+            <nav className="container mx-auto px-4 py-3">
+                <div className="flex items-center justify-between">
+                    {/* Logo */}
+                    <Link to="/" onClick={handleLinkClick} className="flex items-center">
+                        <img src={NavbarPNG} alt="ScholarHunt Logo" className="h-10" />
+                    </Link>
 
-                    {/* Search Bar - Hidden on mobile, visible on medium screens and larger */}
-                    <form
-                        onSubmit={handleSubmit}
-                        className="hidden md:flex flex-1 max-w-md mx-8"
-                    >
+                    {/* Search Bar */}
+                    <form onSubmit={handleSubmit} className="hidden md:flex flex-1 mx-4 max-w-md">
                         <div className="relative w-full">
                             <input
                                 type="text"
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                placeholder="Search scholarship"
-                                className={`w-full px-10 py-2 rounded-full border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isScrolled
-                                        ? 'border-gray-300 bg-white/95 backdrop-blur-sm'
-                                        : 'border-gray-300 bg-white'
-                                    }`}
+                                placeholder="Find scholarship"
+                                className="w-full pl-10 pr-4 py-2 rounded-full bg-white/90 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
+                                aria-label="Find scholarship"
                             />
-                            <i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <svg
+                                className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
                         </div>
                     </form>
 
-                    {/* Desktop Navigation Links - Hidden on mobile, visible on large screens */}
+                    {/* Desktop Links */}
                     <div className="hidden lg:flex items-center gap-6">
                         <Link
                             to="/"
-                            className={`font-medium transition-colors duration-200 hover:text-blue-500 ${isScrolled ? 'text-gray-800' : 'text-black'
-                                }`}
+                            className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
                             onClick={handleLinkClick}
                         >
                             Home
                         </Link>
                         <Link
                             to="/scholarships"
-                            className={`font-medium transition-colors duration-200 hover:text-blue-500 ${isScrolled ? 'text-gray-800' : 'text-black'
-                                }`}
+                            className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
                             onClick={handleLinkClick}
                         >
-                            Scholarships
+                            Scholarhsip
                         </Link>
                         <Link
                             to="/my-scholarships"
-                            className={`font-medium transition-colors duration-200 hover:text-blue-500 ${isScrolled ? 'text-gray-800' : 'text-black'
-                                }`}
+                            className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
                             onClick={handleLinkClick}
                         >
                             My Scholarships
                         </Link>
-
                         {isLoggedIn ? (
                             <div className="relative">
                                 <button
                                     onClick={toggleProfileDropdown}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center gap-2 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                    className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-all duration-200"
+                                    aria-expanded={isProfileDropdownOpen}
+                                    aria-label="Menu profil"
                                 >
                                     {userData.name}
-                                    <i className={`ri-arrow-${isProfileDropdownOpen ? 'up' : 'down'}-s-line transition-transform duration-200`}></i>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180' : ''
+                                            }`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </button>
-
-                                {/* Profile Dropdown */}
                                 {isProfileDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 animate-in slide-in-from-top-2 duration-200">
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 animate-in fade-in duration-200">
                                         <Link
                                             to="/profile"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 w-full text-left transition-colors duration-150"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150"
                                             onClick={handleLinkClick}
                                         >
-                                            <i className="ri-user-line mr-2"></i> Profile
+                                            Profile
                                         </Link>
                                         <button
                                             onClick={handleLogout}
-                                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 w-full text-left transition-colors duration-150"
+                                            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
                                         >
-                                            <i className="ri-logout-box-line mr-2"></i> Logout
+                                            Logout
                                         </button>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <Link
-                                to="/login"
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium tracking-wider transition-all duration-200 shadow-sm hover:shadow-md"
-                                onClick={handleLinkClick}
-                            >
-                                Login
-                            </Link>
-                        )}
-
-                        {!isLoggedIn && (
-                            <Link
-                                to="/register"
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium tracking-wider transition-all duration-200 shadow-sm hover:shadow-md"
-                                onClick={handleLinkClick}
-                            >
-                                Signup
-                            </Link>
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-all duration-200"
+                                    onClick={handleLinkClick}
+                                >
+                                    Masuk
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-all duration-200"
+                                    onClick={handleLinkClick}
+                                >
+                                    Daftar
+                                </Link>
+                            </>
                         )}
                     </div>
 
-                    {/* Mobile Search Bar - Visible only on small screens */}
-                    <div className="md:hidden flex-1 mx-3">
-                        <form onSubmit={handleSubmit}>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search"
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
-                                    className={`w-full px-8 py-1.5 rounded-full border text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isScrolled
-                                            ? 'border-gray-300 bg-white/95 backdrop-blur-sm'
-                                            : 'border-gray-300 bg-white'
-                                        }`}
-                                />
-                                <i className="ri-search-line absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Mobile Menu Button - Visible only on mobile and medium screens */}
+                    {/* Mobile Menu Button */}
                     <button
-                        className={`lg:hidden flex items-center transition-colors duration-200 ${isScrolled ? 'text-gray-800' : 'text-black'
-                            }`}
+                        className="lg:hidden text-gray-700 hover:text-blue-600"
                         onClick={toggleMobileMenu}
-                        aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                        aria-label={isMobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+                        aria-expanded={isMobileMenuOpen}
                     >
-                        <i className={`ri-menu-line text-xl transition-all duration-200 ${isMobileMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`}></i>
-                        <i className={`ri-close-line text-xl absolute transition-all duration-200 ${isMobileMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`}></i>
+                        {isMobileMenuOpen ? (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        )}
                     </button>
                 </div>
 
-                {/* Mobile Menu Panel */}
+                {/* Mobile Menu */}
                 <div
-                    className={`lg:hidden absolute left-0 right-0 top-full rounded-lg shadow-lg transition-all duration-300 ease-in-out bg-white/95 backdrop-blur-md border border-gray-200/50 ${isMobileMenuOpen
-                            ? 'max-h-96 opacity-100 transform translate-y-0'
-                            : 'max-h-0 opacity-0 overflow-hidden transform -translate-y-2'
+                    className={`lg:hidden fixed top-0 right-0 h-full w-3/4 max-w-xs bg-white/95 backdrop-blur-lg shadow-lg transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
                         }`}
                 >
-                    <div className="flex flex-col p-4 gap-3">
+                    <div className="flex flex-col p-4 gap-4">
+                        <form onSubmit={handleSubmit} className="mb-4">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={searchKeyword}
+                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    placeholder="Find scholarship"
+                                    className="w-full pl-10 pr-4 py-2 rounded-full bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    aria-label="Find scholarship"
+                                />
+                                <svg
+                                    className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
+                        </form>
                         <Link
                             to="/"
-                            className="text-gray-800 hover:text-blue-500 font-medium py-2 border-b border-blue-200 transition-colors duration-200"
+                            className="text-gray-700 hover:text-blue-600 font-medium py-2"
                             onClick={handleLinkClick}
                         >
-                            Home
+                            Dashboard
                         </Link>
                         <Link
                             to="/scholarships"
-                            className="text-gray-800 hover:text-blue-500 font-medium py-2 border-b border-blue-200 transition-colors duration-200"
+                            className="text-gray-700 hover:text-blue-600 font-medium py-2"
                             onClick={handleLinkClick}
                         >
                             Scholarships
                         </Link>
                         <Link
                             to="/my-scholarships"
-                            className="text-gray-800 hover:text-blue-500 font-medium py-2 border-b border-blue-200 transition-colors duration-200"
+                            className="text-gray-700 hover:text-blue-600 font-medium py-2"
                             onClick={handleLinkClick}
                         >
-                            My Scholarships
+                            My Scholarhsips
                         </Link>
-
                         {isLoggedIn ? (
                             <>
-                                <div className="py-2 border-b border-blue-200 text-gray-800 font-medium">
-                                    <span>Logged in as: {userData.name}</span>
-                                </div>
                                 <Link
                                     to="/profile"
-                                    className="text-gray-800 hover:text-blue-500 font-medium py-2 border-b border-blue-200 transition-colors duration-200"
+                                    className="text-gray-700 hover:text-blue-600 font-medium py-2"
                                     onClick={handleLinkClick}
                                 >
-                                    <i className="ri-user-line mr-2"></i> Profile
+                                    Profile
                                 </Link>
                                 <button
-                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium tracking-wider text-center mt-2 transition-all duration-200 shadow-sm hover:shadow-md"
                                     onClick={handleLogout}
+                                    className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-all duration-200"
                                 >
-                                    <i className="ri-logout-box-line mr-2"></i> Logout
+                                    Logout
                                 </button>
                             </>
                         ) : (
                             <>
                                 <Link
                                     to="/login"
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium tracking-wider text-center transition-all duration-200 shadow-sm hover:shadow-md"
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-all duration-200"
                                     onClick={handleLinkClick}
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium tracking-wider text-center mt-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                    className="bg-gray-500 text-white px-4 py-2 rounded-full hover:bg-gray-600 transition-all duration-200"
                                     onClick={handleLinkClick}
                                 >
                                     Signup
