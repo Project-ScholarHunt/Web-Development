@@ -9,13 +9,14 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [scholarships, setScholarships] = useState([]);
-    const [viewingApplicant, setViewingApplicant] = useState(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [emailApplicant, setEmailApplicant] = useState(null);
     const [emailNote, setEmailNote] = useState('');
     const [emailStatus, setEmailStatus] = useState('');
+    const [selectedScholarship, setSelectedScholarship] = useState('all');
+    const [scholarships, setScholarships] = useState([]);
+    const [viewingApplicant, setViewingApplicant] = useState(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
 
     const getStatusBadgeClass = (status) => {
         switch (status.toLowerCase()) {
@@ -41,10 +42,9 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         const matchesStatus =
             selectedStatus === 'all' ||
             applicant.status.toLowerCase() === selectedStatus;
-
         return matchesScholarship && matchesSearch && matchesStatus;
     });
-
+  
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -56,7 +56,8 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 }
 
                 await axios.get(`${API_URL}/admin/check-token`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: { Authorization: `Bearer ${token}` 
+                    },
                 });
 
                 const applicantsResponse = await axios.get(`${API_URL}/admin/applicants`, {
@@ -65,7 +66,9 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 setApplicants(applicantsResponse.data);
 
                 const scholarshipsResponse = await axios.get(`${API_URL}/scholarships`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
                 setScholarships(scholarshipsResponse.data);
             } catch (err) {
