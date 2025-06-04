@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Intervention\Image\Facades\Image; // Import the Image facade
 
 class ScholarshipsController extends Controller
 {
@@ -290,5 +291,47 @@ class ScholarshipsController extends Controller
         });
 
         return response()->json($formattedScholarships);
+    }
+
+    /**
+     * Upload a thumbnail image with resizing.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function uploadThumbnail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $image = $request->file('thumbnail');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = 'scholarships/thumbnails/' . $filename; // Storage path
+
+            // Use Intervention Image to resize and save
+            $img = Image::make($image->getRealPath());
+
+            // Resize while maintaining aspect ratio and prevent upsizing
+            $img->resize(1920, 1080, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })->encode($image->getClientOriginalExtension(), 80); // Encode with 80% quality
+
+            // Save to public disk
+            Storage::disk('public')->put($path, $img->stream());
+
+            return response()->json(['path' => Storage::url($path)], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to upload thumbnail',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
