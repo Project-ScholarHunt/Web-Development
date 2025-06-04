@@ -342,7 +342,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 </div>
 
                 <div class="stats">
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: 5fr 5fr 5fr 5fr 5fr;">
                     <div class="stat-item">
                     <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}</div>
                     <div class="stat-label">Pending</div>
