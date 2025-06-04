@@ -9,7 +9,7 @@ use App\Models\Selections;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage; // Untuk dokumen
-use Illuminate\Support\Facades\URL; // Untuk asset() helper
+use Illuminate\Support\Facades\URL;
 
 class ApplicantsController extends Controller
 {
@@ -259,7 +259,8 @@ class ApplicantsController extends Controller
                         'scholarshipName' => $applicant->scholarships->scholarship_name ?? 'N/A',
                         'logo' => $scholarshipLogoUrl,
                     ],
-                    'status' => $applicant->selection->status ?? 'pending', // Frontend mungkin pakai 'pending' huruf kecil
+                    'status' => $applicant->selection->status ?? 'pending',
+                    'note' => $applicant->selection->note ?? '',
                     'created_at' => $applicant->created_at ? $applicant->created_at->toISOString() : null,
                     'registration_date' => $applicant->registration_date ? \Carbon\Carbon::parse($applicant->registration_date)->toISOString() : null,
                 ];
