@@ -210,6 +210,7 @@ class ApplicantsController extends Controller
                         'scholarshipName' => $applicant->scholarships->name ?? 'N/A',
                     ],
                     'status' => $applicant->selection->status ?? 'pending',
+                    'note' => $applicant->selection->note ?? '',
                     'created_at' => $applicant->created_at->toISOString(),
                 ];
             });

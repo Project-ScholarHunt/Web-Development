@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import loginImage from '../assets/img/login.png'
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -16,6 +17,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
     const [emailApplicant, setEmailApplicant] = useState(null);
     const [emailNote, setEmailNote] = useState('');
     const [emailStatus, setEmailStatus] = useState('');
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     const getStatusBadgeClass = (status) => {
         switch (status.toLowerCase()) {
@@ -186,6 +188,239 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         return scholarships.find(s => s.id === parseInt(scholarshipId));
     };
 
+    const generatePDFReport = async () => {
+        try {
+            setIsGeneratingPDF(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Authentication token is missing. Please log in again.');
+                return;
+            }
+
+            const response = await axios.post(`${API_URL}/admin/scholarships/${scholarshipId}/report`, {
+                format: 'pdf',
+                include_stats: true,
+                status_filter: selectedStatus !== 'all' ? selectedStatus : null
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            const currentScholarship = getCurrentScholarship();
+            const fileName = `${currentScholarship?.scholarshipName || 'Scholarship'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+            link.setAttribute('download', fileName);
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            alert('PDF report generated successfully!');
+        } catch (err) {
+            console.error('Failed to generate PDF:', err);
+
+            generateClientSidePDF();
+        } finally {
+            setIsGeneratingPDF(false);
+        }
+    };
+
+    const generateClientSidePDF = () => {
+        const currentScholarship = getCurrentScholarship();
+        const reportDate = new Date().toLocaleDateString('id-ID');
+
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <style>
+                body { 
+                font-family: Arial, sans-serif; 
+                margin: 0; 
+                padding: 0; 
+                position: relative; 
+                min-height: 100vh; 
+                background-image: url('${loginImage}'); /* Use imported image */
+                background-repeat: no-repeat;
+                background-position: center center;
+                background-size: 50%; /* Adjust size as needed */
+                background-attachment: fixed;
+                }
+                body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: inherit;
+                background-repeat: inherit;
+                background-position: inherit;
+                background-size: inherit;
+                opacity: 0.1; /* Adjust opacity for watermark effect */
+                transform: rotate(45deg); /* Rotate the watermark 45 degrees */
+                transform-origin: center center;
+                z-index: -1; /* Place behind content */
+                pointer-events: none;
+                }
+                .content {
+                position: relative;
+                z-index: 1; /* Ensure content is above the watermark */
+                }
+                .header {
+                text-align: center;
+                padding: 20px 0;
+                border-bottom: 2px solid #333;
+                margin-bottom: 20px;
+                }
+                .title { font-size: 28px; font-weight: bold; color: #333; }
+                .subtitle { font-size: 18px; color: #666; margin-top: 5px; }
+                .info-section { margin: 20px; }
+                .info-row { display: flex; justify-content: space-between; margin: 5px 0; }
+                .stats { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px; }
+                .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+                .stat-item { text-align: center; }
+                .stat-number { font-size: 24px; font-weight: bold; color: #333; }
+                .stat-label { font-size: 12px; color: #666; text-transform: uppercase; }
+                table { width: 100%; border-collapse: collapse; margin: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                .status-pending { background-color: #fef3cd; color: #856404; }
+                .status-review { background-color: #cce5ff; color: #004085; }
+                .status-accepted { background-color: #d4edda; color: #155724; }
+                .status-rejected { background-color: #f8d7da; color: #721c24; }
+                .status-interview { background-color: #e2e3ff; color: #383d41; }
+                .note-cell { max-width: 200px; word-wrap: break-word; }
+                .footer { margin: 30px 20px 20px; text-align: center; font-size: 10px; color: #666; }
+                @media print {
+                body { margin: 0; }
+                @page {
+                    margin: 0;
+                    @top-left { content: none; }
+                    @top-center { content: none; }
+                    @top-right { content: none; }
+                    @bottom-left { content: none; }
+                    @bottom-center { content: none; }
+                    @bottom-right { content: none; }
+                }
+                }
+            </style>
+            <title>Laporan Beasiswa - Scholar Hunt</title>
+            </head>
+            <body>
+            <div class="content">
+                <div class="header">
+                <div class="title">LAPORAN BEASISWA</div>
+                <div class="subtitle">${currentScholarship?.scholarshipName || 'Unknown Scholarship'}</div>
+                </div>
+                
+                <div class="info-section">
+                <div class="info-row">
+                    <strong>Tanggal Laporan:</strong>
+                    <span>${reportDate}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Total Pelamar:</strong>
+                    <span>${filteredApplicants.length} orang</span>
+                </div>
+                <div class="info-row">
+                    <strong>Filter Status:</strong>
+                    <span>${selectedStatus === 'all' ? 'Semua Status' : selectedStatus}</span>
+                </div>
+                </div>
+
+                <div class="stats">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}</div>
+                    <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-item">
+                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'under review').length}</div>
+                    <div class="stat-label">Under Review</div>
+                    </div>
+                    <div class="stat-item">
+                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'interview').length}</div>
+                    <div class="stat-label">Interview</div>
+                    </div>
+                    <div class="stat-item">
+                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'accepted').length}</div>
+                    <div class="stat-label">Accepted</div>
+                    </div>
+                    <div class="stat-item">
+                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'rejected').length}</div>
+                    <div class="stat-label">Rejected</div>
+                    </div>
+                </div>
+                </div>
+
+                <table>
+                <thead>
+                    <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>NIM</th>
+                    <th>Email</th>
+                    <th>GPA</th>
+                    <th>Tanggal Daftar</th>
+                    <th>Status</th>
+                    <th>Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filteredApplicants.map((applicant, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${applicant.name || '-'}</td>
+                        <td>${applicant.nim || '-'}</td>
+                        <td>${applicant.email || '-'}</td>
+                        <td>${applicant.ipk || applicant.gpa || '-'}</td>
+                        <td>${new Date(applicant.created_at).toLocaleDateString('id-ID')}</td>
+                        <td class="status-${applicant.status.toLowerCase().replace(' ', '-')}">${applicant.status}</td>
+                        <td class="note-cell">${applicant.note || '-'}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+                </table>
+
+                <div class="footer">
+                <p>Laporan ini dibuat secara otomatis pada ${new Date().toLocaleString('id-ID')}</p>
+                <p>Scholar Hunt</p>
+                </div>
+            </div>
+            </body>
+            </html>
+        `;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(printContent);
+        doc.close();
+
+        iframe.onload = () => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        };
+    };
+
     const currentScholarship = getCurrentScholarship();
 
     return (
@@ -200,12 +435,33 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                             {filteredApplicants.length} total applicants
                         </p>
                     </div>
-                    <button
-                        onClick={onBack}
-                        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                    >
-                        ← Back to Scholarships
-                    </button>
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={generatePDFReport}
+                            disabled={isGeneratingPDF}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isGeneratingPDF ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Export PDF
+                                </>
+                            )}
+                        </button>
+                        <button
+                            onClick={onBack}
+                            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                        >
+                            ← Back to Scholarships
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex gap-4 mb-4">
@@ -230,6 +486,40 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         <option value="accepted">Accepted</option>
                         <option value="rejected">Rejected</option>
                     </select>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-yellow-800">
+                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}
+                        </div>
+                        <div className="text-sm text-yellow-600">Pending</div>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-blue-800">
+                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'under review').length}
+                        </div>
+                        <div className="text-sm text-blue-600">Under Review</div>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-purple-800">
+                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'interview').length}
+                        </div>
+                        <div className="text-sm text-purple-600">Interview</div>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-green-800">
+                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'accepted').length}
+                        </div>
+                        <div className="text-sm text-green-600">Accepted</div>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-red-800">
+                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'rejected').length}
+                        </div>
+                        <div className="text-sm text-red-600">Rejected</div>
+                    </div>
                 </div>
             </div>
 
@@ -344,7 +634,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         <h3 className="text-lg font-semibold mb-4">
                             {emailStatus.toLowerCase() === 'accepted'
                                 ? 'Congratulations!'
-                                : 'We’re Sorry'}
+                                : 'We\'re Sorry'}
                         </h3>
                         <p className="text-sm text-gray-600 mb-4">
                             {emailStatus.toLowerCase() === 'accepted'
