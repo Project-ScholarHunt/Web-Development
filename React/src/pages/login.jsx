@@ -247,7 +247,7 @@ const Login = () => {
             {/* **Image Section** */}
             <div className='flex items-center justify-center order-1 lg:order-2'>
               <div className='relative'>
-                <div className='absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full blur-3xl opacity-20 animate-pulse'></div>
+                <div className='absolute inset-0 x'></div>
                 <img 
                   src={loginImg} 
                   alt="Login illustration" 

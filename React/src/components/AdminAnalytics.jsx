@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
     Chart as ChartJS,
@@ -12,6 +12,9 @@ import {
     Legend
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import loginImg from '../assets/img/login.png'
 
 ChartJS.register(
     CategoryScale,
@@ -25,9 +28,10 @@ ChartJS.register(
 );
 
 // API_URL sudah benar, menunjuk ke endpoint analytics admin di Laravel
-const API_URL = "http://127.0.0.1:8000/api/admin/analytics"; 
+const API_URL = "http://127.0.0.1:8000/api/admin/analytics";
 
 const AdminAnalytics = () => {
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [scholarships, setScholarships] = useState([]);
@@ -39,15 +43,11 @@ const AdminAnalytics = () => {
             setIsLoading(true); // Set loading true di awal fetch
             setError(null); // Reset error
             try {
-                // --- PENANGANAN TOKEN AUTENTIKASI (INI YANG BENAR) ---
-                const token = localStorage.getItem('token') || 
-                              sessionStorage.getItem('token') ||
-                              (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
-                
+                const token = localStorage.getItem('token')
                 if (!token) {
                     setError("Authentication token not found. Please login as Admin.");
                     setIsLoading(false);
-                    return; 
+                    return;
                 }
 
                 const config = {
@@ -105,7 +105,7 @@ const AdminAnalytics = () => {
         totalQuota: 0,
         quotaFillRate: 0
     };
-    
+
     // Fungsi untuk mendapatkan status distribution data
     const getStatusDistribution = () => {
         // Gunakan data dari generalStatsData untuk konsistensi
@@ -114,8 +114,8 @@ const AdminAnalytics = () => {
             datasets: [
                 {
                     data: [
-                        generalStatsData.approvedApplicants, 
-                        generalStatsData.pendingApplicants, 
+                        generalStatsData.approvedApplicants,
+                        generalStatsData.pendingApplicants,
                         generalStatsData.rejectedApplicants
                     ],
                     backgroundColor: ['#10B981', '#FBBF24', '#EF4444'],
@@ -160,8 +160,8 @@ const AdminAnalytics = () => {
             count: applicants.filter(app => app.university === uni).length
         }));
 
-        universityData.sort((a, b) => b.count - a.count); 
-        const topUniversities = universityData.slice(0, 5); 
+        universityData.sort((a, b) => b.count - a.count);
+        const topUniversities = universityData.slice(0, 5);
 
         return {
             labels: topUniversities.map(item => item.university),
@@ -181,16 +181,15 @@ const AdminAnalytics = () => {
     const scholarshipData = !isLoading && scholarships.length > 0 && applicants.length >= 0 ? getScholarshipApplicationData() : null; // applicants bisa 0
     const universityData = !isLoading && applicants.length > 0 ? getUniversityDistribution() : null;
 
-    // ... (bagian JSX return tidak diubah signifikan, hanya pastikan menggunakan generalStatsData)
-    // Untuk progress bar di "Detailed Status Metrics":
-    // Ganti applicants.filter(a => a.status === 'approved').length menjadi generalStatsData.approvedApplicants
-    // Ganti applicants.filter(a => a.status === 'rejected').length menjadi generalStatsData.rejectedApplicants
-
     return (
         <div>
-            <h1 className="text-2xl font-semibold mb-4">Analytics Dashboard</h1>
+            {isLoading ?
+                null
+                :
+                <h1 className="text-2xl font-semibold">Analytics Dashboard</h1>
+            }
 
-            {/* Error Message */}
+
             {error && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                     <p className="font-bold">Error</p>
@@ -198,14 +197,13 @@ const AdminAnalytics = () => {
                 </div>
             )}
 
-            {/* Loading Indicator */}
             {isLoading ? (
                 <div className="text-center my-10">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
                     <p className="mt-4 text-lg font-medium text-gray-600">Loading analytics data...</p>
                 </div>
             ) : !error && generalStats ? ( // Hanya render jika tidak loading, tidak ada error, dan generalStats ada
-                <div className="space-y-6">
+                <div className="space-y-6" id='pdf' ref={componentRef}>
                     {/* Main Key Metrics */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
@@ -240,7 +238,6 @@ const AdminAnalytics = () => {
                             <h3 className="text-lg font-medium text-gray-700 mb-1">Approval Rate</h3>
                             <div className="flex items-baseline">
                                 <span className="text-3xl font-bold text-indigo-600">{generalStatsData.approvalRate}%</span>
-                                {/* <span className="ml-2 text-sm font-medium text-gray-500">approved</span> */}
                             </div>
                             <div className="mt-2 flex items-center">
                                 <div className="flex items-center text-sm text-green-600"> {/* Warna disesuaikan untuk quota filled */}
@@ -251,14 +248,13 @@ const AdminAnalytics = () => {
                         </div>
                     </div>
 
-                    {/* Application Status Distribution */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-lg p-10 shadow-lg border max-h-[300px] border-gray-200">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-semibold text-gray-800">Application Status Distribution</h2>
                         </div>
-                        <div className="h-72 md:h-80 flex justify-center"> {/* Tinggi disesuaikan */}
+                        <div className="h-30 md:h-50 flex justify-center"> {/* Tinggi disesuaikan */}
                             <div className="w-full max-w-sm md:max-w-md"> {/* Lebar disesuaikan */}
-                                {statusData && <Pie data={statusData} options={{ maintainAspectRatio: false }}/>}
+                                {statusData && <Pie data={statusData} options={{ maintainAspectRatio: false }} />}
                             </div>
                         </div>
                     </div>
@@ -315,7 +311,7 @@ const AdminAnalytics = () => {
                                         ></div>
                                     </div>
                                 </div>
-                                
+
                                 {/* Quota Fill Rate Progress Bar (Optional, bisa digabung atau dipisah) */}
                                 <div>
                                     <div className="flex justify-between mb-1">

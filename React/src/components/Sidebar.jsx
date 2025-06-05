@@ -6,10 +6,8 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
     // Array menu items untuk dirender dinamis
     const menuItems = [
         { id: 'scholarships', label: 'Scholarships', icon: 'ri-graduation-cap-line' },
-        { id: 'applicants', label: 'Applicants', icon: 'ri-file-line' },
         { id: 'analytics', label: 'Analytics', icon: 'ri-bar-chart-2-line' },
         { id: 'users', label: 'Users', icon: 'ri-user-3-line' },
-        { id: 'settings', label: 'Settings', icon: 'ri-settings-2-line' },
     ];
 
     return (
