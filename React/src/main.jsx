@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
 
-        <Route path='/login' element={<Login />} />
+        <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='*' element={<Notfound />} />
         <Route path='/admin-dashboard' element={<AdminDashboard />}/>
@@ -29,7 +29,6 @@ createRoot(document.getElementById('root')).render(
         <Route path='/adminlogin' element={<AdminLogin />} />
 
         <Route element={<MainLayout />}>
-          <Route path='/' element={<Dashboard />} />
           <Route path='/dashboard' element={<Dashboard />} />
           <Route path='/scholarships' element={<Scholarships />} />
           <Route path='/my-scholarships' element={<MyScholarships />} />

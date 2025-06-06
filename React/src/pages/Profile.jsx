@@ -3,9 +3,9 @@ import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
 import Loading from '../components/Loading'
+import { alertError, alertSuccess } from '../lib/alert';
 
 const Profile = () => {
-    // State untuk data profile user
     const [userData, setUserData] = useState({
         name: '',
         email: '',
@@ -33,11 +33,7 @@ const Profile = () => {
         try {
             setIsLoading(true);
             
-            // Ambil token dari localStorage atau dari mana pun token Anda disimpan
-            const token = localStorage.getItem('token') || 
-                          sessionStorage.getItem('token') ||
-                          (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
-            
+            const token = localStorage.getItem('token')
             if (!token) {
                 setError('Token not found. Please login again.');
                 setIsLoading(false);
@@ -55,7 +51,6 @@ const Profile = () => {
             
             const user = response.data;
             
-            // PENTING: menggunakan name bukan username sesuai dengan database Laravel
             setUserData({
                 name: user.name || '',
                 email: user.email || '',
@@ -101,12 +96,10 @@ const Profile = () => {
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token') || 
-                        sessionStorage.getItem('token') ||
-                        (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
+            const token = localStorage.getItem('token')
             
             if (!token) {
-                setError('Token not found. Please login again.');
+                setError('Please login again.');
                 return;
             }
             
@@ -133,15 +126,15 @@ const Profile = () => {
                 ...response.data.user
             });
             setIsEditing(false);
-            alert('Profil berhasil diperbarui!');
+            alertSuccess('Profil berhasil diperbarui!');
         } catch (err) {
             console.error('Error updating profile:', err);
             if (err.response && err.response.status === 401) {
                 setError('Authentication error. Please login again.');
             } else if (err.response && err.response.data) {
-                alert(`Error: ${err.response.data.message || 'Gagal memperbarui profil'}`);
+                alertError(`Error: ${err.response.data.message || 'Gagal memperbarui profil'}`);
             } else {
-                alert('Gagal memperbarui profil. Silakan coba lagi.');
+                alertError('Gagal memperbarui profil. Silakan coba lagi.');
             }
         }
     };
@@ -180,7 +173,7 @@ const Profile = () => {
                 }
             );
             
-            alert('Password berhasil diperbarui!');
+            alertSuccess('Password berhasil diperbarui!');
             setShowPasswordModal(false);
             setPasswordForm({
                 currentPassword: '',
@@ -192,9 +185,9 @@ const Profile = () => {
             if (err.response && err.response.status === 401) {
                 setError('Authentication error. Please login again.');
             } else if (err.response && err.response.data) {
-                alert(`Error: ${err.response.data.message || 'Gagal memperbarui password'}`);
+                alertError(`Error: ${err.response.data.message || 'Gagal memperbarui password'}`);
             } else {
-                alert('Gagal memperbarui password. Silakan coba lagi.');
+                alertError('Gagal memperbarui password. Silakan coba lagi.');
             }
         }
     };
@@ -374,9 +367,8 @@ const Profile = () => {
                 </div>
             </div>
 
-            {/* Modal untuk ubah password */}
             {showPasswordModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-[rgba(0,0,0,0.9)] flex items-center justify-center p-4 z-100">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-down">
                         <div className="bg-gradient-to-r from-[#357ABD] to-[#506AD4] p-5">
                             <h2 className="text-xl font-bold text-white">Ubah Password</h2>

@@ -5,6 +5,7 @@ import Loading from '../components/Loading'
 import VerifyOtp from '../components/VerifyOtp'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { alertError } from '../lib/alert'
 
 const Login = () => {
   const navigation = useNavigate()
@@ -72,14 +73,7 @@ const Login = () => {
       console.log('Response JSON:', data)
 
       if (!response.ok) {
-        toast.error(data.message, {
-          position: "top-right",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        })
+        alertError(data.message)
         throw new Error(data.message || 'Something went wrong!')
       }
 
@@ -87,7 +81,7 @@ const Login = () => {
         setEmailForOtp(data.email)
         setLoading(false)
         setShowVerifyOtp(true)
-        return
+        navigation('/dashboard')
       }
 
       setFormData({})

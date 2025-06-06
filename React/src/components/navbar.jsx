@@ -11,7 +11,6 @@ const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
 
-    // Throttled scroll handler
     const handleScroll = useCallback(() => {
         setIsScrolled(window.scrollY > 50);
     }, []);
@@ -25,7 +24,6 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', scrollListener);
     }, [handleScroll]);
 
-    // Check authentication status
     const checkAuthStatus = useCallback(async () => {
         const token = localStorage.getItem('token');
         const email = localStorage.getItem('user');
@@ -61,7 +59,6 @@ const Navbar = () => {
         }
     }, []);
 
-    // Fetch user data
     const fetchUserData = async (token, email) => {
         try {
             const response = await fetch('http://localhost:8000/api/profile', {
@@ -105,7 +102,7 @@ const Navbar = () => {
         setIsLoggedIn(false);
         setUserData({ name: 'User' });
         closeAllMenus();
-        navigate('/login');
+        navigate('/');
     }, [navigate, closeAllMenus]);
 
     const handleSubmit = useCallback(
@@ -146,7 +143,7 @@ const Navbar = () => {
             <nav className="container mx-auto px-4 py-3">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
-                    <Link to="/" onClick={handleLinkClick} className="flex items-center">
+                    <Link to="/dashboard" onClick={handleLinkClick} className="flex items-center">
                         <img src={NavbarPNG} alt="ScholarHunt Logo" className="h-10" />
                     </Link>
 
@@ -180,7 +177,7 @@ const Navbar = () => {
                     {/* Desktop Links */}
                     <div className="hidden lg:flex items-center gap-6">
                         <Link
-                            to="/"
+                            to="/dashboard"
                             className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
                             onClick={handleLinkClick}
                         >
@@ -240,7 +237,7 @@ const Navbar = () => {
                         ) : (
                             <>
                                 <Link
-                                    to="/login"
+                                    to="/"
                                     className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-all duration-200"
                                     onClick={handleLinkClick}
                                 >
@@ -347,7 +344,7 @@ const Navbar = () => {
                         ) : (
                             <>
                                 <Link
-                                    to="/login"
+                                    to="/"
                                     className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-all duration-200"
                                     onClick={handleLinkClick}
                                 >

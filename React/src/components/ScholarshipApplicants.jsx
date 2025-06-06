@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import loginImg from '../assets/img/login.png'
+import { alertError, alertSuccess } from '../lib/alert';
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -95,7 +96,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                alertError('Unauthorized. Please login.');
                 return;
             }
 
@@ -124,7 +125,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
             console.error('Failed to update status:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to update status. Please try again.';
             if (err.response?.status === 401) {
-                alert('Session expired or invalid token. Please log in again.');
+                alertError('Session expired or invalid token. Please log in again.');
                 window.location.href = '/admin-login';
             } else if (err.response?.status === 403) {
                 const newToken = localStorage.getItem('token');
@@ -139,11 +140,11 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         setViewingApplicant({ ...viewingApplicant, status: newStatus });
                     }
                 } else {
-                    alert('Failed to refresh token. Please log in again.');
+                    alertError('Failed to refresh token. Please log in again.');
                     window.location.href = '/admin-login';
                 }
             } else {
-                alert(errorMessage);
+                alertError(errorMessage);
             }
         }
     };
@@ -152,7 +153,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                alertError('Authentication token is missing. Please log in again.');
                 return;
             }
 
@@ -164,7 +165,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            alert('Email sent successfully!');
+            alertSuccess('Email sent successfully!');
             setShowEmailModal(false);
             setEmailApplicant(null);
             setEmailStatus('');
@@ -172,7 +173,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         } catch (err) {
             console.error('Failed to send email:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to send email. Please try again.';
-            alert(errorMessage);
+            alertError(errorMessage);
         }
     };
 

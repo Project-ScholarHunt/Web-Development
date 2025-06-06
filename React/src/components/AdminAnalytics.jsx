@@ -12,10 +12,6 @@ import {
     Legend
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import loginImg from '../assets/img/login.png'
-
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -203,8 +199,7 @@ const AdminAnalytics = () => {
                     <p className="mt-4 text-lg font-medium text-gray-600">Loading analytics data...</p>
                 </div>
             ) : !error && generalStats ? ( // Hanya render jika tidak loading, tidak ada error, dan generalStats ada
-                <div className="space-y-6" id='pdf' ref={componentRef}>
-                    {/* Main Key Metrics */}
+                <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
                             <h3 className="text-lg font-medium text-gray-700 mb-1">Total Applicants</h3>

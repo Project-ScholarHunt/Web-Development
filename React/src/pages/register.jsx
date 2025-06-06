@@ -17,7 +17,7 @@ const Register = () => {
   const toLogin = () => {
     setIsVisible(false)
     setTimeout(() => {
-      navigate('/login')
+      navigate('/')
     }, 300)
   }
 

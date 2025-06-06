@@ -116,7 +116,7 @@ const CarouselDashboard = ({
         const token = localStorage.getItem('token');
         if (!token) {
             alert('Please login or register to apply for this scholarship.');
-            navigate('/login');
+            navigate('/');
             return;
         }
         if (!isApplied && currentFeatured?.id && typeof handleViewDetails === 'function') {
