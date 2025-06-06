@@ -118,7 +118,7 @@ const VerifyOtp = ({ email, onBackToLogin  }) => {
 
             setLoading(false);
             localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("user", data.user);
             navigate('/dashboard');
 
         } catch (err) {
