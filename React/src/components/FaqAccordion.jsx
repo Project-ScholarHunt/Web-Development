@@ -6,20 +6,21 @@ const FaqAccordion = () => {
     const faqData = [
         {
             id: 1,
-            question: "Lorem ipsum dolor sit amet?",
-            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nunc nisl aliquam nisl, eget aliquam nunc nisl eget nunc. Nullam auctor, nisl eget ultricies tincidunt, nunc nisl aliquam nisl, eget aliquam nunc nisl eget nunc."
+            question: "What is required to apply for a scholarship?",
+            answer: "You need to complete a registration form that consists of 3 steps: personal information, academic information, and document upload. Required documents include a recommendation letter, a statement letter, and an academic transcript, all in PDF format and no larger than 2MB."
         },
         {
             id: 2,
-            question: "Consectetur adipiscing elit, sed do eiusmod tempor?",
-            answer: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo."
+            question: "What are the possible statuses of my scholarship application?",
+            answer: "The application status can be: Pending, Under Review, Interview, Accepted, Rejected, or Withdrawn. You can check your latest status on the 'My Scholarships' page."
         },
         {
             id: 3,
-            question: "Ut enim ad minim veniam, quis nostrud exercitation?",
-            answer: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet."
-        }
+            question: "Can I cancel my scholarship application?",
+            answer: "Yes. If your application status is still Pending or Under Review, you can click the 'Withdraw Application' button to cancel your submission."
+        },
     ];
+
 
     // State for managing which FAQ is open
     const [openFaq, setOpenFaq] = useState(null);

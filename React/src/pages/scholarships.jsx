@@ -5,6 +5,7 @@ import Footer from '../components/footer';
 import axios from 'axios';
 import Loading from '../components/Loading';
 import Error from '../components/Error';
+import { alertError } from '../lib/alert';
 
 const ScholarshipsPage = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -117,14 +118,14 @@ const ScholarshipsPage = () => {
     const handleApplyClick = () => {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('Please login or register to apply for this scholarship.');
-            navigate('/login');
+            alertError('Please login or register to apply for this scholarship.');
+            navigate('/');
             return;
         }
 
         if (selectedScholarship) {
             if (applicationStatus[selectedScholarship.id]) {
-                alert('You have already registered for this scholarship.');
+                alertError('You have already registered for this scholarship.');
             } else {
                 navigate(`/apply?scholarship_id=${selectedScholarship.id}`);
             }
@@ -155,7 +156,7 @@ const ScholarshipsPage = () => {
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
             <Navbar />
-            <main className="flex-grow container mx-auto px-6 py-[15vh]">
+            <main className="flex-grow container mx-auto px-6 py-[5vh]">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">
                     {searchTerm ? `Search Results for "${searchTerm}"` : "Scholarships"}
                 </h1>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import CrudScholarshipForm from './CrudScholarshipForm';
 import CrudScholarshipTable from './CrudScholarshipTable';
 import ScholarshipApplicants from './ScholarshipApplicants';
+import { alertSuccess } from '../lib/alert';
 
 const AdminScholarships = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -136,8 +137,7 @@ const AdminScholarships = () => {
                         'X-HTTP-Method-Override': 'PUT'
                     }
                 });
-
-                alert('Scholarship updated successfully!');
+                alertSuccess('Scholarship updated successfully!');
             } else {
                 response = await axios.post(
                     `${API_BASE_URL}/scholarships`,
@@ -150,7 +150,7 @@ const AdminScholarships = () => {
                         }
                     }
                 );
-                alert('Scholarship created successfully!');
+                alertSuccess('Scholarship created successfully!');
             }
 
             resetForm();

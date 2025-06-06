@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import loginImage from '../assets/img/login.png'
+import loginImg from '../assets/img/login.png'
+import { alertError, alertSuccess } from '../lib/alert';
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -46,7 +47,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
             applicant.status.toLowerCase() === selectedStatus;
         return matchesScholarship && matchesSearch && matchesStatus;
     });
-  
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -58,7 +59,8 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 }
 
                 await axios.get(`${API_URL}/admin/check-token`, {
-                    headers: { Authorization: `Bearer ${token}` 
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     },
                 });
 
@@ -94,7 +96,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                alertError('Unauthorized. Please login.');
                 return;
             }
 
@@ -123,7 +125,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
             console.error('Failed to update status:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to update status. Please try again.';
             if (err.response?.status === 401) {
-                alert('Session expired or invalid token. Please log in again.');
+                alertError('Session expired or invalid token. Please log in again.');
                 window.location.href = '/admin-login';
             } else if (err.response?.status === 403) {
                 const newToken = localStorage.getItem('token');
@@ -138,11 +140,11 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         setViewingApplicant({ ...viewingApplicant, status: newStatus });
                     }
                 } else {
-                    alert('Failed to refresh token. Please log in again.');
+                    alertError('Failed to refresh token. Please log in again.');
                     window.location.href = '/admin-login';
                 }
             } else {
-                alert(errorMessage);
+                alertError(errorMessage);
             }
         }
     };
@@ -151,7 +153,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                alertError('Authentication token is missing. Please log in again.');
                 return;
             }
 
@@ -163,7 +165,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            alert('Email sent successfully!');
+            alertSuccess('Email sent successfully!');
             setShowEmailModal(false);
             setEmailApplicant(null);
             setEmailStatus('');
@@ -171,7 +173,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         } catch (err) {
             console.error('Failed to send email:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to send email. Please try again.';
-            alert(errorMessage);
+            alertError(errorMessage);
         }
     };
 
@@ -191,51 +193,6 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         return scholarships.find(s => s.id === parseInt(scholarshipId));
     };
 
-    const generatePDFReport = async () => {
-        try {
-            setIsGeneratingPDF(true);
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Authentication token is missing. Please log in again.');
-                return;
-            }
-
-            const response = await axios.post(`${API_URL}/admin/scholarships/${scholarshipId}/report`, {
-                format: 'pdf',
-                include_stats: true,
-                status_filter: selectedStatus !== 'all' ? selectedStatus : null
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                responseType: 'blob'
-            });
-
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-
-            const currentScholarship = getCurrentScholarship();
-            const fileName = `${currentScholarship?.scholarshipName || 'Scholarship'}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
-            link.setAttribute('download', fileName);
-
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
-            alert('PDF report generated successfully!');
-        } catch (err) {
-            console.error('Failed to generate PDF:', err);
-
-            generateClientSidePDF();
-        } finally {
-            setIsGeneratingPDF(false);
-        }
-    };
-
     const generateClientSidePDF = () => {
         const currentScholarship = getCurrentScholarship();
         const reportDate = new Date().toLocaleDateString('id-ID');
@@ -251,7 +208,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 padding: 0; 
                 position: relative; 
                 min-height: 100vh; 
-                background-image: url('${loginImage}'); /* Use imported image */
+                background-image: url('${loginImg}'); /* Use imported image */
                 background-repeat: no-repeat;
                 background-position: center center;
                 background-size: 50%; /* Adjust size as needed */
@@ -268,10 +225,10 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 background-repeat: inherit;
                 background-position: inherit;
                 background-size: inherit;
-                opacity: 0.1; /* Adjust opacity for watermark effect */
-                transform: rotate(45deg); /* Rotate the watermark 45 degrees */
+                opacity: 0.1;
+                transform: rotate(45deg);
                 transform-origin: center center;
-                z-index: -1; /* Place behind content */
+                z-index: -1;
                 pointer-events: none;
                 }
                 .content {
@@ -315,10 +272,24 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                     @bottom-right { content: none; }
                 }
                 }
+                .watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 80px;
+                color: #000;
+                opacity: 0.4;
+                white-space: nowrap;
+                z-index: 0;
+                pointer-events: none;
+                user-select: none;
+                }
             </style>
             <title>Laporan Beasiswa - Scholar Hunt</title>
             </head>
             <body>
+            <div class="watermark">SCHOLAR HUNT</div>
             <div class="content">
                 <div class="header">
                 <div class="title">LAPORAN BEASISWA</div>
@@ -341,10 +312,10 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 </div>
 
                 <div class="stats">
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: 5fr 5fr 5fr 5fr 5fr;">
                     <div class="stat-item">
-                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}</div>
-                    <div class="stat-label">Pending</div>
+                    <div class="stat-number ">${filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}</div>
+                    <div class="stat-label ">Pending</div>
                     </div>
                     <div class="stat-item">
                     <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'under review').length}</div>
@@ -440,8 +411,8 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                     </div>
                     <div className="flex space-x-3">
                         <button
-                            onClick={generatePDFReport}
-                            disabled={isGeneratingPDF}
+                            onClick={generateClientSidePDF}
+                            disabled={isLoading}
                             className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isGeneratingPDF ? (
@@ -451,9 +422,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                                 </>
                             ) : (
                                 <>
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                    <i class="ri-file-add-line mr-2"></i>
                                     Export PDF
                                 </>
                             )}
@@ -560,8 +529,11 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {applicant.name}
+                                                <div
+                                                    className="text-sm font-medium text-gray-900">
+                                                    {applicant.name.length > 15
+                                                        ? applicant.name.slice(0, 15) + '...'
+                                                        : applicant.name}
                                                 </div>
                                                 {applicant.nim && (
                                                     <div className="text-sm text-gray-500">

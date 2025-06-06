@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
+import { Link } from 'react-router';
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -162,7 +163,7 @@ const MyScholarshipsPage = () => {
                 }
             } catch (err) {
                 if (err.response && err.response.status === 401) {
-                    setError('Your session has expired. Please log in again.');
+                    setError('User not identified. Please log in again.');
                 } else {
                     console.error('Failed to withdraw application:', err);
                     alert('Failed to withdraw application. Please try again.');
@@ -178,9 +179,11 @@ const MyScholarshipsPage = () => {
                     <div className="bg-white rounded-lg shadow-md p-8 text-center">
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">Session Expired</h2>
                         <p className="text-gray-600 mb-6">Your session has expired. Please log in again to continue.</p>
-                        <a href="/login" className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full">
+                        <Link
+                        to="/" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full">
                             Log In
-                        </a>
+                        </Link>
                     </div>
                 </main>
             </div>
@@ -189,7 +192,7 @@ const MyScholarshipsPage = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-300">
-            <main className="flex-grow container mx-auto px-6 py-[15vh]">
+            <main className="flex-grow container mx-auto px-6 py-[5vh]">
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">My Scholarships</h1>
 
                 {error && (

@@ -87,31 +87,13 @@ const Dashboard = () => {
         }
     };
 
-    // Navigate to the scholarship page with a specific scholarship ID
     const handleViewDetails = (scholarshipId) => {
         navigate(`/scholarships?id=${scholarshipId}`);
     };
 
-    // Navigate to see all scholarships
     const handleSeeMore = () => {
         navigate('/scholarships');
     };
-
-    useEffect(() => {
-        let interval;
-
-        if (autoSlide && featuredScholarships.length > 1) {
-            interval = setInterval(() => {
-                handleNextFeatured();
-            }, 5000);
-        }
-
-        return () => {
-            if (interval) {
-                clearInterval(interval);
-            }
-        };
-    }, [autoSlide, featuredScholarships.length, currentFeaturedIndex]);
 
     const formatDate = (dateString) => {
         if (!dateString) return 'No deadline';
@@ -146,7 +128,6 @@ const Dashboard = () => {
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
             <div className="flex-grow">
-                {/* Featured Scholarship - Hero Section */}
                 {currentFeatured ?
                     <CarouselDashboard
                         currentFeatured={currentFeatured}
@@ -164,9 +145,7 @@ const Dashboard = () => {
                         </section>
                     )}
 
-                {/* Scholarship Grid Section - Bento Box */}
                 <section className="container mx-auto px-6 py-16 mt-12">
-                    {/* Dynamic Header */}
                     <div className="relative mb-16">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-3xl"></div>
                         <div className="relative p-8 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -206,7 +185,6 @@ const Dashboard = () => {
                     ) : (
                         <div className="grid grid-cols-12 gap-6">
                             {Array.isArray(scholarships) && scholarships.slice(0, 5).map((scholarship, index) => {
-                                // Dynamic grid sizing untuk bento layout
                                 const getGridClass = (index) => {
                                     switch (index) {
                                         case 0: return "col-span-12 md:col-span-6 lg:col-span-5 row-span-2";
@@ -225,7 +203,6 @@ const Dashboard = () => {
                                         className={`${getGridClass(index)} group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-100 hover:border-slate-200 ${index === 0 ? 'min-h-[400px]' : 'min-h-[280px]'
                                             }`}
                                     >
-                                        {/* Image Section */}
                                         <div className={`relative overflow-hidden ${index === 0 ? 'h-64' : 'h-40'}`}>
                                             {scholarship.thumbnail ? (
                                                 <img

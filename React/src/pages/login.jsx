@@ -5,6 +5,7 @@ import Loading from '../components/Loading'
 import VerifyOtp from '../components/VerifyOtp'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { alertError } from '../lib/alert'
 
 const Login = () => {
   const navigation = useNavigate()
@@ -19,6 +20,14 @@ const Login = () => {
     setIsVisible(true)
   }, [])
 
+  // Function untuk kembali ke login dari OTP
+  const backToLogin = () => {
+    setShowVerifyOtp(false)
+    setEmailForOtp('')
+    setFormData({}) // Reset form data
+    setIsVisible(true) // Trigger animation
+  }
+
   function toRegister() {
     setIsVisible(false)
     setTimeout(() => {
@@ -32,7 +41,7 @@ const Login = () => {
     setLoading(true)
 
     if (!formData.email || !formData.password) {
-      toast.error('Email dan password wajib diisi.', {
+      toast.error('Email and password are required.', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -45,7 +54,7 @@ const Login = () => {
     }
 
     if (formData.password.length < 8) {
-      toast.error('Password harus minimal 8 karakter.', {
+      toast.error('Password must be at least 8 characters.', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -72,14 +81,7 @@ const Login = () => {
       console.log('Response JSON:', data)
 
       if (!response.ok) {
-        toast.error(data.message, {
-          position: "top-right",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        })
+        alertError(data.message)
         throw new Error(data.message || 'Something went wrong!')
       }
 
@@ -87,7 +89,6 @@ const Login = () => {
         setEmailForOtp(data.email)
         setLoading(false)
         setShowVerifyOtp(true)
-        return
       }
 
       setFormData({})
@@ -105,7 +106,7 @@ const Login = () => {
   }
 
   if (showVerifyOtp) {
-    return <VerifyOtp email={emailForOtp} />
+    return <VerifyOtp email={emailForOtp} onBackToLogin={backToLogin} />
   }
 
   const handleChange = (e) => {
@@ -128,15 +129,14 @@ const Login = () => {
         pauseOnHover
         theme="light"
       />
-      
+
       {/* **Main Container with Animation** */}
-      <div className={`w-full max-w-6xl mx-auto transition-all duration-500 ease-out transform ${
-        isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
-      }`}>
-        
+      <div className={`w-full max-w-6xl mx-auto transition-all duration-500 ease-out transform ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
+        }`}>
+
         {/* **Glass Card Effect** */}
         <div className='bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden'>
-          
+
           {/* **Header with Gradient** */}
           <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-center'>
             <h1 className='text-white font-bold text-4xl md:text-5xl mb-2 animate-pulse'>
@@ -147,11 +147,11 @@ const Login = () => {
 
           {/* **Content Area** */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 p-8'>
-            
+
             {/* **Form Section** */}
             <div className='space-y-6 order-2 lg:order-1'>
               <form className='space-y-6' onSubmit={handleSubmit}>
-                
+
                 {/* **Email Input** */}
                 <div className='group'>
                   <label className='block text-sm font-semibold text-gray-700 mb-2'>
@@ -198,9 +198,8 @@ const Login = () => {
                   </div>
                   {/* **Password Indicator** */}
                   {formData.password && (
-                    <div className={`text-xs mt-2 transition-all duration-300 ${
-                      formData.password.length >= 8 ? 'text-green-600' : 'text-red-500'
-                    }`}>
+                    <div className={`text-xs mt-2 transition-all duration-300 ${formData.password.length >= 8 ? 'text-green-600' : 'text-red-500'
+                      }`}>
                       {formData.password.length >= 8 ? '✓ Password valid' : `${formData.password.length}/8 characters`}
                     </div>
                   )}
@@ -210,11 +209,10 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                    loading 
-                      ? 'bg-gray-400 cursor-not-allowed' 
+                  className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 active:scale-95 ${loading
+                      ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl'
-                  }`}
+                    }`}
                 >
                   {loading ? (
                     <div className="flex items-center justify-center gap-3">
@@ -247,10 +245,10 @@ const Login = () => {
             {/* **Image Section** */}
             <div className='flex items-center justify-center order-1 lg:order-2'>
               <div className='relative'>
-                <div className='absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full blur-3xl opacity-20 animate-pulse'></div>
-                <img 
-                  src={loginImg} 
-                  alt="Login illustration" 
+                <div className='absolute inset-0 x'></div>
+                <img
+                  src={loginImg}
+                  alt="Login illustration"
                   className="relative w-full max-w-md h-auto object-contain animate-float"
                 />
               </div>

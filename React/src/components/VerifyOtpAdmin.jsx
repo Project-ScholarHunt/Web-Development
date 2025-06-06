@@ -18,8 +18,8 @@ const VerifyOtpAdmin = ({ email }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (otp.length !== 6) {
-            setError('OTP harus 6 digit');
+        if (otp.length !== 8) {
+            setError('OTP harus 8 digit');
             return;
         }
 
@@ -64,8 +64,8 @@ const VerifyOtpAdmin = ({ email }) => {
                 <input
                     type="text"
                     name="otp"
-                    maxLength={6}
-                    placeholder="Masukkan 6 digit OTP"
+                    maxLength={8}
+                    placeholder="Masukkan 8 digit OTP"
                     value={otp}
                     onChange={handleChange}
                     className="p-2 border rounded text-center text-lg tracking-widest"

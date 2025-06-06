@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import AdminScholarships from '../components/AdminScholarships';
-import AdminApplicants from '../components/AdminApplicants';
 import AdminAnalytics from '../components/AdminAnalytics';
 import NotFound from '../pages/notfound'
 import Loading from '../components/Loading'
@@ -65,8 +64,6 @@ const AdminDashboard = () => {
         switch (currentSection) {
             case 'scholarships':
                 return <AdminScholarships />;
-            case 'applicants':
-                return <AdminApplicants />;
             case 'analytics':
                 return <AdminAnalytics />;
             case 'users':
