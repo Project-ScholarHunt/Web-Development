@@ -95,22 +95,6 @@ const Dashboard = () => {
         navigate('/scholarships');
     };
 
-    useEffect(() => {
-        let interval;
-
-        if (autoSlide && featuredScholarships.length > 1) {
-            interval = setInterval(() => {
-                handleNextFeatured();
-            }, 5000);
-        }
-
-        return () => {
-            if (interval) {
-                clearInterval(interval);
-            }
-        };
-    }, [autoSlide, featuredScholarships.length, currentFeaturedIndex]);
-
     const formatDate = (dateString) => {
         if (!dateString) return 'No deadline';
         try {

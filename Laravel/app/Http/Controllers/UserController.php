@@ -65,7 +65,7 @@ class UserController extends Controller
         Cache::forget('register_user_' . $token);
 
         Auth::login($user);
-        return redirect()->away('http://localhost:5173/login');
+        return redirect()->away('http://localhost:5173/');
     }
 
     public function loginUser(Request $request)

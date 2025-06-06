@@ -6,8 +6,6 @@ const CarouselDashboard = ({
     currentFeatured,
     currentFeaturedIndex,
     featuredScholarships = [], // Default ke array kosong
-    autoSlide,
-    setAutoSlide,
     handlePrevFeatured,
     handleNextFeatured,
     handleSetCurrentFeaturedIndex, // Prop opsional untuk navigasi dot yang lebih baik
@@ -76,14 +74,6 @@ const CarouselDashboard = ({
         fetchApplicationStatus();
     }, [fetchApplicationStatus]);
 
-    useEffect(() => {
-        if (!autoSlide || !featuredScholarships || featuredScholarships.length <= 1 || typeof handleNextFeatured !== 'function') return;
-
-        const interval = setInterval(() => {
-            handleNextFeatured();
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [autoSlide, featuredScholarships, handleNextFeatured]);
 
 
     const handleImageLoad = useCallback(() => {
@@ -107,10 +97,7 @@ const CarouselDashboard = ({
         if (typeof handleNextFeatured === 'function') handleNextFeatured();
     }, [handleNextFeatured]);
 
-    const handleAutoSlideToggle = useCallback((e) => {
-        e.preventDefault(); e.stopPropagation();
-        if (typeof setAutoSlide === 'function') setAutoSlide(prev => !prev);
-    }, [setAutoSlide]);
+
 
     const handleApplyClick = useCallback(() => {
         const token = localStorage.getItem('token');
@@ -258,25 +245,6 @@ const CarouselDashboard = ({
                                 />
                             ))}
                         </div>
-                        <button
-                            type="button"
-                            onClick={handleAutoSlideToggle}
-                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-white/30 ${autoSlide
-                                ? 'bg-white text-black hover:bg-white/90 active:bg-white/80'
-                                : 'bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 active:bg-white/40'
-                                }`}
-                            aria-label={autoSlide ? 'Pause auto-slide' : 'Enable auto-slide'}
-                        >
-                            {autoSlide ? (
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M5.5 4A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16h1.5a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 007 4H5.5zm8 0A1.5 1.5 0 0012 5.5v9A1.5 1.5 0 0013.5 16h1.5a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0015 4h-1.5z" clipRule="evenodd" />
-                                </svg>
-                            ) : (
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6.3 5.053a1.5 1.5 0 00-2.122 2.122L8.878 12l-4.7 4.825a1.5 1.5 0 002.122 2.122L12 13.122l4.7 4.825a1.5 1.5 0 002.122-2.122L13.122 12l4.7-4.825a1.5 1.5 0 00-2.122-2.122L12 8.878 7.3 3.211A1.5 1.5 0 006.3 5.053z" clipRule="evenodd" />
-                                </svg>
-                            )}
-                        </button>
                     </div>
                 </>
             )}
