@@ -3,6 +3,7 @@ import axios from 'axios';
 import loginImg from '../assets/img/login.png'
 import { alertError, alertSuccess } from '../lib/alert';
 import { useNavigate } from 'react-router';
+import ApplicantDetailModal from './ApplicantDetailModal';
 
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -266,6 +267,11 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         setShowDetailModal(true);
     };
 
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false);
+        setViewingApplicant(null);
+    };
+
     const getCurrentScholarship = () => {
         return scholarships.find(s => s.id === parseInt(scholarshipId));
     };
@@ -285,10 +291,10 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 padding: 0; 
                 position: relative; 
                 min-height: 100vh; 
-                background-image: url('${loginImg}'); /* Use imported image */
+                background-image: url('${loginImg}');
                 background-repeat: no-repeat;
                 background-position: center center;
-                background-size: 50%; /* Adjust size as needed */
+                background-size: 50%;
                 background-attachment: fixed;
                 }
                 body::before {
@@ -310,7 +316,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 }
                 .content {
                 position: relative;
-                z-index: 1; /* Ensure content is above the watermark */
+                z-index: 1;
                 }
                 .header {
                 text-align: center;
@@ -705,6 +711,15 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Applicant Detail Modal */}
+            {showDetailModal && viewingApplicant && (
+                <ApplicantDetailModal
+                    applicant={viewingApplicant}
+                    isOpen={showDetailModal}
+                    onClose={handleCloseDetailModal}
+                />
             )}
         </div>
     );
