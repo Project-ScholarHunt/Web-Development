@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const CarouselDashboard = ({
     currentFeatured,
     currentFeaturedIndex,
-    featuredScholarships = [], // Default ke array kosong
+    featuredScholarships = [],
     handlePrevFeatured,
     handleNextFeatured,
-    handleSetCurrentFeaturedIndex, // Prop opsional untuk navigasi dot yang lebih baik
+    handleSetCurrentFeaturedIndex,
     handleViewDetails,
     formatDate
 }) => {
@@ -17,26 +17,26 @@ const CarouselDashboard = ({
     const [imageError, setImageError] = useState(false);
     const [prevImageSrc, setPrevImageSrc] = useState(null);
     const navigate = useNavigate();
+    const renderCount = useRef(0);
 
     const isApplied = useMemo(() =>
         currentFeatured ? applicationStatus[currentFeatured.id] : false,
         [applicationStatus, currentFeatured]
     );
 
-    const imageSrc = useMemo(() =>
-        currentFeatured?.thumbnail || '/placeholder-scholarship.jpg',
-        [currentFeatured?.thumbnail]
-    );
+    const imageSrc = useMemo(() => {
+        const baseSrc = currentFeatured?.thumbnail || '/placeholder-scholarship.jpg';
+        return `${baseSrc}?t=${new Date().getTime()}`;
+    }, [currentFeatured?.thumbnail]);
 
     useEffect(() => {
-        // Reset status gambar jika sumber gambar berubah
-        if (imageSrc !== prevImageSrc) {
-            setImageLoaded(false);
-            setImageError(false);
-            setPrevImageSrc(imageSrc);
-            // console.log('[Carousel] Image source changed, resetting load/error states for:', imageSrc);
-        }
-    }, [imageSrc, prevImageSrc]);
+        renderCount.current += 1;
+        console.log('Render count:', renderCount.current);
+        console.log('Current Featured:', currentFeatured);
+        setImageLoaded(false);
+        setImageError(false);
+        setPrevImageSrc(imageSrc);
+    }, [currentFeatured?.id, imageSrc]);
 
     const fetchApplicationStatus = useCallback(async () => {
         const token = localStorage.getItem('token');
@@ -46,7 +46,7 @@ const CarouselDashboard = ({
 
         try {
             const statusPromises = featuredScholarships.map(async (scholarship) => {
-                if (!scholarship || !scholarship.id) return { id: null, applied: false }; // Tambahan guard
+                if (!scholarship || !scholarship.id) return { id: null, applied: false };
                 try {
                     const response = await axios.get(
                         `http://127.0.0.1:8000/api/applicants/check/${scholarship.id}`,
@@ -74,8 +74,6 @@ const CarouselDashboard = ({
         fetchApplicationStatus();
     }, [fetchApplicationStatus]);
 
-
-
     const handleImageLoad = useCallback(() => {
         setImageLoaded(true);
         setImageError(false);
@@ -84,7 +82,7 @@ const CarouselDashboard = ({
     const handleImageError = useCallback(() => {
         console.error('[Carousel] Image failed to load:', imageSrc);
         setImageError(true);
-        setImageLoaded(true); // Tetap set true agar skeleton hilang, error styling akan aktif
+        setImageLoaded(true);
     }, [imageSrc]);
 
     const handlePrevClick = useCallback((e) => {
@@ -96,8 +94,6 @@ const CarouselDashboard = ({
         e.preventDefault(); e.stopPropagation();
         if (typeof handleNextFeatured === 'function') handleNextFeatured();
     }, [handleNextFeatured]);
-
-
 
     const handleApplyClick = useCallback(() => {
         const token = localStorage.getItem('token');
@@ -115,7 +111,6 @@ const CarouselDashboard = ({
         if (typeof handleSetCurrentFeaturedIndex === 'function') {
             handleSetCurrentFeaturedIndex(targetIndex);
         } else {
-            // Fallback jika handleSetCurrentFeaturedIndex tidak disediakan
             if (targetIndex === currentFeaturedIndex || !featuredScholarships || featuredScholarships.length === 0) return;
 
             const diff = targetIndex - currentFeaturedIndex;
@@ -153,16 +148,15 @@ const CarouselDashboard = ({
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-500 animate-pulse" />
                 )}
                 <img
-                    key={imageSrc} // Penting untuk re-render img element saat src berubah
+                    key={currentFeatured.id}
                     src={imageSrc}
                     alt={currentFeatured.scholarshipName || 'Featured scholarship image'}
                     className={`w-full h-full object-cover transition-opacity duration-700 
                         ${imageLoaded && !imageError ? 'opacity-100' : 'opacity-0'}
                         ${imageError ? '!opacity-100 bg-slate-200' : ''} 
-                        group-hover:scale-105 transform`} // sedikit scale on group hover
+                        group-hover:scale-105 transform`}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
-                    loading="lazy"
                 />
                 <div className={`absolute inset-0 bg-gradient-to-t from-black/${imageError ? '0' : '80'} via-black/${imageError ? '0' : '40'} to-transparent`} />
                 <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -234,7 +228,7 @@ const CarouselDashboard = ({
                         <div className="flex gap-1.5 sm:gap-2">
                             {featuredScholarships.map((scholarship, index) => (
                                 <button
-                                    key={scholarship.id || index} // Gunakan ID unik jika ada
+                                    key={scholarship.id || index}
                                     type="button"
                                     onClick={() => handleDotClick(index)}
                                     className={`h-1.5 rounded-full transition-all duration-300 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-white/50 ${index === currentFeaturedIndex
@@ -249,11 +243,11 @@ const CarouselDashboard = ({
                 </>
             )}
 
-            {!imageLoaded && !imageError && ( // Tampilkan spinner hanya jika loading dan belum error
+            {!imageLoaded && !imageError && (
                 <div className="absolute top-4 right-4 w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin z-20" />
             )}
         </section>
     );
 };
 
-export default React.memo(CarouselDashboard);
+export default CarouselDashboard;
