@@ -1,6 +1,6 @@
 // Sidebar.jsx
 import React, { useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
     // Array menu items untuk dirender dinamis
@@ -10,24 +10,24 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
         { id: 'users', label: 'Users', icon: 'ri-user-3-line' },
     ];
 
-    // Function untuk handle logout - menyamakan dengan logic di Navbar
+    
+
     const handleLogout = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
-        // Redirect ke halaman home
-        window.location.href = '/adminlogin';
+        
+        navigate('/admin-login');
     }, []);
 
-    // Function untuk handle logout and go to user login
     const handleLogoutToUserLogin = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
-        // Redirect ke halaman user login
-        window.location.href = '/';
+        navigate('/');
     }, []);
 
+    const navigate = useNavigate();
     return (
         <div>
             <aside className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full md:w-64 bg-white shadow-md md:h-full flex flex-col`}>

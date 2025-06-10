@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import loginImg from '../assets/img/login.png'
 import { alertError, alertSuccess } from '../lib/alert';
+import { useNavigate } from 'react-router';
+
 
 const API_URL = "http://127.0.0.1:8000/api";
 
@@ -20,6 +22,9 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
     const [scholarships, setScholarships] = useState([]);
     const [viewingApplicant, setViewingApplicant] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [isLoadingStatus, setIsLoadingStatus] = useState(false);
+    const [updatingApplicantId, setUpdatingApplicantId] = useState(null)
+    const navigate = useNavigate();
 
     const getStatusBadgeClass = (status) => {
         switch (status.toLowerCase()) {
@@ -48,51 +53,52 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         return matchesScholarship && matchesSearch && matchesStatus;
     });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    setError('Authentication token is missing. Please log in again.');
-                    return;
-                }
-
-                await axios.get(`${API_URL}/admin/check-token`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    },
-                });
-
-                const applicantsResponse = await axios.get(`${API_URL}/admin/applicants`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setApplicants(applicantsResponse.data);
-
-                const scholarshipsResponse = await axios.get(`${API_URL}/scholarships`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                setScholarships(scholarshipsResponse.data);
-            } catch (err) {
-                console.error('Error fetching data:', err);
-                const errorMessage = err.response?.data?.message || 'Failed to load data. Please try again.';
-                if (err.response?.status === 401) {
-                    setError('Session expired or invalid token. Please log in again.');
-                    window.location.href = '/admin-login';
-                } else {
-                    setError(errorMessage);
-                }
-            } finally {
-                setIsLoading(false);
+    const fetchData = async () => {
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Authentication token is missing. Please log in again.');
+                return;
             }
-        };
 
+            await axios.get(`${API_URL}/admin/check-token`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+            });
+
+            const applicantsResponse = await axios.get(`${API_URL}/admin/applicants`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setApplicants(applicantsResponse.data);
+
+            const scholarshipsResponse = await axios.get(`${API_URL}/scholarships`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setScholarships(scholarshipsResponse.data);
+        } catch (err) {
+            console.error('Error fetching data:', err);
+            const errorMessage = err.response?.data?.message || 'Failed to load data. Please try again.';
+            if (err.response?.status === 401) {
+                setError('Session expired or invalid token. Please log in again.');
+                navigate('/admin-login');
+            } else {
+                setError(errorMessage);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    useEffect(() => {
         fetchData();
     }, [scholarshipId]);
 
     const handleStatusChange = async (applicantId, newStatus) => {
+        setIsLoadingStatus(true);
+        setUpdatingApplicantId(applicantId);
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -100,9 +106,14 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 return;
             }
 
-            const response = await axios.put(`${API_URL}/admin/applicants/${applicantId}/status`, { status: newStatus }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            setIsLoadingStatus(true);
+            const response = await axios.put(
+                `${API_URL}/admin/applicants/${applicantId}/status`,
+                { status: newStatus },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
 
             setApplicants(applicants.map(applicant =>
                 applicant.id === applicantId ? { ...applicant, status: newStatus } : applicant
@@ -120,13 +131,47 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 setEmailStatus(newStatus);
                 setEmailNote('');
                 setShowEmailModal(true);
+            } else {
+                const autoNote = `Your application status has been updated to "${newStatus}". Please check your email for further details.`;
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        alertError('Authentication token is missing. Please log in again.');
+                        return;
+                    }
+
+                    const postSendMail = await axios.post(`${API_URL}/admin/selections/send-email`, {
+                        applicant_id: applicantId,
+                        status: newStatus,
+                        note: autoNote,
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    if (postSendMail.status === 200) {
+                        alertSuccess(postSendMail.message)
+                        setIsLoadingStatus(false);
+                    }
+
+                    alertSuccess('Email sent successfully!');
+                    setShowEmailModal(false);
+                    setEmailApplicant(null);
+                    setEmailStatus('');
+                    setEmailNote('');
+                    fetchData();
+                } catch (err) {
+                    console.error('Failed to send email:', err.response ? err.response.data : err);
+                    const errorMessage = err.response?.data?.message || 'Failed to send email. Please try again.';
+                    alertError(errorMessage);
+                }
             }
         } catch (err) {
+            setIsLoadingStatus(false);
             console.error('Failed to update status:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to update status. Please try again.';
             if (err.response?.status === 401) {
                 alertError('Session expired or invalid token. Please log in again.');
-                window.location.href = '/admin-login';
+                navigate('/admin-login');
             } else if (err.response?.status === 403) {
                 const newToken = localStorage.getItem('token');
                 if (newToken) {
@@ -141,11 +186,14 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                     }
                 } else {
                     alertError('Failed to refresh token. Please log in again.');
-                    window.location.href = '/admin-login';
+                    navigate('/admin-login');
                 }
             } else {
                 alertError(errorMessage);
             }
+        } finally {
+            setIsLoadingStatus(false);
+            setUpdatingApplicantId(null);
         }
     };
 
@@ -156,20 +204,21 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 alertError('Authentication token is missing. Please log in again.');
                 return;
             }
-
+            setIsLoading(true);
             await axios.post(`${API_URL}/admin/selections/send-email`, {
-                applicant_id: emailApplicant.id,
+                applicant_id: emailApplicant?.id,
                 status: emailStatus,
                 note: emailNote,
             }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
+            setIsLoading(false);
             alertSuccess('Email sent successfully!');
             setShowEmailModal(false);
             setEmailApplicant(null);
             setEmailStatus('');
             setEmailNote('');
+            fetchData();
         } catch (err) {
             console.error('Failed to send email:', err.response ? err.response.data : err);
             const errorMessage = err.response?.data?.message || 'Failed to send email. Please try again.';
@@ -177,11 +226,39 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
         }
     };
 
-    const handleCloseEmailModal = () => {
+    const handleCloseEmailModal = async () => {
+        let autoNote = ''
+        if (emailStatus === "Accepted") {
+            autoNote = `Congratulations ${emailApplicant?.name}! Your application status is "${emailStatus}". We are pleased to inform you that your application has been accepted.`;
+        } else {
+            autoNote = `Dear ${emailApplicant?.name}, we regret to inform you that your application status is "${emailStatus}". We appreciate your interest in our scholarship program.`;
+        }
+        try {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alertError('Authentication token is missing. Please log in again.');
+                return;
+            }
+            await axios.post(`${API_URL}/admin/selections/send-email`, {
+                applicant_id: emailApplicant?.id,
+                status: emailStatus,
+                note: autoNote,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setIsLoading(false);
+            alertSuccess('Email sent successfully!');
+        } catch (err) {
+            console.error('Failed to send email:', err.response ? err.response.data : err);
+            const errorMessage = err.response?.data?.message || 'Failed to send email. Please try again.';
+            alertError(errorMessage);
+        }
         setShowEmailModal(false);
         setEmailApplicant(null);
         setEmailStatus('');
         setEmailNote('');
+        fetchData();
     };
 
     const viewApplicantDetails = (applicant) => {
@@ -253,12 +330,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 table { width: 100%; border-collapse: collapse; margin: 20px; }
                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
                 th { background-color: #f2f2f2; font-weight: bold; }
-                .status-pending { background-color: #fef3cd; color: #856404; }
-                .status-review { background-color: #cce5ff; color: #004085; }
-                .status-accepted { background-color: #d4edda; color: #155724; }
-                .status-rejected { background-color: #f8d7da; color: #721c24; }
-                .status-interview { background-color: #e2e3ff; color: #383d41; }
-                .note-cell { max-width: 200px; word-wrap: break-word; }
+                .note-cell { max-width: 150px; word-wrap: break-word; }
                 .footer { margin: 30px 20px 20px; text-align: center; font-size: 10px; color: #666; }
                 @media print {
                 body { margin: 0; }
@@ -281,14 +353,14 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 color: #000;
                 opacity: 0.4;
                 white-space: nowrap;
-                z-index: 0;
+                z-index: 100;
                 pointer-events: none;
                 user-select: none;
                 }
             </style>
             <title>Laporan Beasiswa - Scholar Hunt</title>
             </head>
-            <body>
+            <body style="padding: 20px; background-color: #f9f9f9;">
             <div class="watermark">SCHOLAR HUNT</div>
             <div class="content">
                 <div class="header">
@@ -312,7 +384,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 </div>
 
                 <div class="stats">
-                <div class="stats-grid" style="grid-template-columns: 5fr 5fr 5fr 5fr 5fr;">
+                <div class="stats-grid" style="grid-template-columns: 5fr 5fr 5fr 5fr;">
                     <div class="stat-item">
                     <div class="stat-number ">${filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}</div>
                     <div class="stat-label ">Pending</div>
@@ -320,10 +392,6 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                     <div class="stat-item">
                     <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'under review').length}</div>
                     <div class="stat-label">Under Review</div>
-                    </div>
-                    <div class="stat-item">
-                    <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'interview').length}</div>
-                    <div class="stat-label">Interview</div>
                     </div>
                     <div class="stat-item">
                     <div class="stat-number">${filteredApplicants.filter(a => a.status.toLowerCase() === 'accepted').length}</div>
@@ -336,7 +404,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                 </div>
                 </div>
 
-                <table>
+                <table style="column-width: 100px; border-collapse: collapse; margin: 20px auto;">
                 <thead>
                     <tr>
                     <th>No</th>
@@ -396,9 +464,10 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
     };
 
     const currentScholarship = getCurrentScholarship();
-
     return (
         <div className="p-6">
+            {isLoadingStatus && <LoadingOverlay text="Updating status..." />}
+
             <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>
@@ -413,7 +482,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         <button
                             onClick={generateClientSidePDF}
                             disabled={isLoading}
-                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-wait"
                         >
                             {isGeneratingPDF ? (
                                 <>
@@ -454,14 +523,13 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="under review">Under Review</option>
-                        <option value="interview">Interview</option>
                         <option value="accepted">Accepted</option>
                         <option value="rejected">Rejected</option>
                     </select>
                 </div>
 
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div className="text-2xl font-bold text-yellow-800">
                             {filteredApplicants.filter(a => a.status.toLowerCase() === 'pending').length}
@@ -473,12 +541,6 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                             {filteredApplicants.filter(a => a.status.toLowerCase() === 'under review').length}
                         </div>
                         <div className="text-sm text-blue-600">Under Review</div>
-                    </div>
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-purple-800">
-                            {filteredApplicants.filter(a => a.status.toLowerCase() === 'interview').length}
-                        </div>
-                        <div className="text-sm text-purple-600">Interview</div>
                     </div>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="text-2xl font-bold text-green-800">
@@ -517,8 +579,8 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         {isLoading ? (
                             <tr>
                                 <td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-500">
-                                    <div className="flex items-center justify-center">
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-9 h-9 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                         Loading applicants...
                                     </div>
                                 </td>
@@ -574,7 +636,6 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                                             >
                                                 <option value="Pending">Pending</option>
                                                 <option value="Under Review">Under Review</option>
-                                                <option value="Interview">Interview</option>
                                                 <option value="Accepted">Accepted</option>
                                                 <option value="Rejected">Rejected</option>
                                             </select>
@@ -604,7 +665,7 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
             </div>
 
             {showEmailModal && emailApplicant && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                         <h3 className="text-lg font-semibold mb-4">
                             {emailStatus.toLowerCase() === 'accepted'
@@ -629,13 +690,15 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={handleCloseEmailModal}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                                disabled={isLoading}
+                                className="disabled:opacity-50 disabled:cursor-wait px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSendEmail}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                disabled={isLoading}
+                                className="disabled:opacity-50 disabled:cursor-wait px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                             >
                                 Send Email
                             </button>
@@ -648,3 +711,14 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
 };
 
 export default ScholarshipApplicants;
+
+const LoadingOverlay = ({ text = "Updating..." }) => {
+    return (
+        <div className="absolute inset-0 bg-[rgba(255,255,255,0.7)] flex items-center justify-center z-40 rounded-lg">
+            <div className="flex flex-col items-center text-lg text-blue-800 font-semibold">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                {text}
+            </div>
+        </div>
+    );
+};

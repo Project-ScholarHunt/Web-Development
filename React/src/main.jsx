@@ -26,7 +26,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/admin-dashboard' element={<AdminDashboard />}/>
         <Route path='scholarship-applicants/:id' element={<ScholarshipApplicants/>}/>
         <Route path='/apply-scholarship' element={<Apply />} />
-        <Route path='/adminlogin' element={<AdminLogin />} />
+        <Route path='/admin-login' element={<AdminLogin />} />
 
         <Route element={<MainLayout />}>
           <Route path='/dashboard' element={<Dashboard />} />

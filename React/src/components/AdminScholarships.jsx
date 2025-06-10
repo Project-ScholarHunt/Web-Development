@@ -3,7 +3,7 @@ import axios from 'axios';
 import CrudScholarshipForm from './CrudScholarshipForm';
 import CrudScholarshipTable from './CrudScholarshipTable';
 import ScholarshipApplicants from './ScholarshipApplicants';
-import { alertSuccess } from '../lib/alert';
+import { alertConfirm, alertError, alertSuccess } from '../lib/alert';
 
 const AdminScholarships = () => {
     const [scholarships, setScholarships] = useState([]);
@@ -158,6 +158,7 @@ const AdminScholarships = () => {
             fetchScholarships();
         } catch (err) {
             console.error('Error submitting form:', err);
+            alertError(err.message)
 
             if (err.response) {
                 if (err.response.data && err.response.data.errors) {
@@ -232,24 +233,25 @@ const AdminScholarships = () => {
     };
 
     const handleDelete = async (id) => {
+        if (!await alertConfirm('Are you sure you want to delete this scholarship?')) {
+            return;
+        }
         if (!id) {
             console.error('Invalid scholarship ID for deletion');
             return;
         }
-        if (window.confirm('Are you sure you want to delete this scholarship?')) {
-            try {
-                await axios.delete(`${API_BASE_URL}/scholarships/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Accept': 'application/json'
-                    }
-                });
-                fetchScholarships();
-                alert('Scholarship deleted successfully');
-            } catch (err) {
-                console.error('Error deleting scholarship:', err);
-                alert('Failed to delete scholarship. Please try again.');
-            }
+        try {
+            await axios.delete(`${API_BASE_URL}/scholarships/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Accept': 'application/json'
+                }
+            });
+            fetchScholarships();
+            alertSuccess('Scholarship deleted successfully');
+        } catch (err) {
+            console.error('Error deleting scholarship:', err);
+            alertError('Failed to delete scholarship. Please try again.');
         }
     };
 

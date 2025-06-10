@@ -136,7 +136,7 @@ class UserController extends Controller
         }
 
         if ($cachedOtp != $request->otp) {
-            return response()->json(['message' => 'OTP Invalid'. $cachedOtp], 401);
+            return response()->json(['message' => 'OTP Invalid'], 401);
         }
 
         $user = User::where('email', $email)->first();

@@ -71,11 +71,6 @@ const AdminDashboard = () => {
                     <h1 className="text-xl font-bold mb-4">User Management</h1>
                     <p>User management feature will be implemented soon.</p>
                 </div>;
-            case 'settings':
-                return <div className="p-4 bg-white rounded-lg shadow-md">
-                    <h1 className="text-xl font-bold mb-4">Settings</h1>
-                    <p>Settings panel will be implemented soon.</p>
-                </div>;
             case 'unauthorized':
                 return <NotFound />
             case 'loading':

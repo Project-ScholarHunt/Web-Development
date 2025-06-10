@@ -15,7 +15,7 @@ class SelectionsController extends Controller
     {
         $validated = $request->validate([
             'applicant_id' => 'required|exists:applicants,applicant_id',
-            'status' => 'required|in:Accepted,Rejected',
+            'status' => 'required',
             'note' => 'nullable|string|max:1000',
         ]);
 
