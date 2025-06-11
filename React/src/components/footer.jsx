@@ -42,7 +42,6 @@ const Footer = () => {
               <li><a href="/" className="hover:text-blue-300 transition-colors">Home</a></li>
               <li><a href="/scholarships" className="hover:text-blue-300 transition-colors">Scholarships</a></li>
               <li><a href="/my-scholarships" className="hover:text-blue-300 transition-colors">My Scholarships</a></li>
-              <li><a href="/faq" className="hover:text-blue-300 transition-colors">FAQ</a></li>
             </ul>
           </div>
 
@@ -51,7 +50,7 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-3 text-blue-300">Scholar Hunt</h3>
             <p className="mb-2">Information Systems Web Project</p>
             <p className="mb-2">Semester 6 - 2025</p>
-            <p className="text-sm mt-3 text-gray-300">Built with React, Tailwind CSS</p>
+            <p className="text-sm mt-3 text-gray-300">Built with Laravel, React, Tailwind CSS, MySQL</p>
           </div>
 
           {/* Right Column: Team & Contact */}
@@ -87,9 +86,9 @@ const Footer = () => {
         <div className="pt-4 border-t border-gray-600 text-xs sm:text-sm text-center text-gray-300">
           <p>© 2025 Scholar Hunt Team. All Rights Reserved.</p>
           <p className="mt-1 flex justify-center flex-wrap gap-x-1">
-            <a href="/privacy-policy" className="hover:text-blue-300 transition-colors">Privacy Policy</a>
+            <a href="" className="hover:text-blue-300 transition-colors">Privacy Policy</a>
             <span className="mx-1">|</span>
-            <a href="/terms" className="hover:text-blue-300 transition-colors">Terms of Use</a>
+            <a href="" className="hover:text-blue-300 transition-colors">Terms of Use</a>
           </p>
         </div>
       </div>

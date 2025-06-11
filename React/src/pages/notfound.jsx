@@ -1,8 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import NotFound from '../assets/img/notfound.jpg'
 import { Link } from 'react-router'
 
 const notfound = () => {
+
+    useEffect(() => {
+        document.title = 'Not Found';
+    }, [])
     return (
         <div className='min-h-screen container flex flex-col items-center justify-center mx-auto'>
             <img

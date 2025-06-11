@@ -27,6 +27,8 @@ const AdminDashboard = () => {
     };
 
     useEffect(() => {
+        document.title = 'Admin Dashboard';
+
         const rawUser = localStorage.getItem('user');
         const isAdmin = (() => {
             try {

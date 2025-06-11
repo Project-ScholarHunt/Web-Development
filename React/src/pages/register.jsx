@@ -11,6 +11,7 @@ const Register = () => {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    document.title = 'Register';
     setIsVisible(true)
   }, [])
 

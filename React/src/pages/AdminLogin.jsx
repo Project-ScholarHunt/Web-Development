@@ -1,9 +1,15 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import LoginImg from '../assets/img/login.png'
 import { useNavigate } from 'react-router';
 import VerifyOtpAdmin from '../components/VerifyOtpAdmin';
 
+
+
 const AdminLogin = () => {
+
+    useEffect(() => {
+        document.title = 'Admin Login';
+    }, [])
 
     const [formData, setFormData] = useState({
         email: '',
@@ -76,7 +82,7 @@ const AdminLogin = () => {
     };
 
     if (showVerifyOtp) {
-        return <VerifyOtpAdmin email={emailForOtp}/>
+        return <VerifyOtpAdmin email={emailForOtp} />
     }
 
     return (

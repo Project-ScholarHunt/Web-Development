@@ -6,12 +6,17 @@ import Loading from '../components/Loading'
 import { alertError, alertSuccess } from '../lib/alert';
 
 const Profile = () => {
+
+    useEffect(() => {
+        document.title = 'Profile';
+    }, [])
+
     const [userData, setUserData] = useState({
         name: '',
         email: '',
         phone: '',
     });
-    
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -32,14 +37,14 @@ const Profile = () => {
     const fetchUserData = async () => {
         try {
             setIsLoading(true);
-            
+
             const token = localStorage.getItem('token')
             if (!token) {
                 setError('Token not found. Please login again.');
                 setIsLoading(false);
                 return;
             }
-            
+
             const response = await axios.get('http://127.0.0.1:8000/api/profile', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -48,21 +53,21 @@ const Profile = () => {
                 },
                 withCredentials: true
             });
-            
+
             const user = response.data;
-            
+
             setUserData({
                 name: user.name || '',
                 email: user.email || '',
                 phone: user.phone || '',
             });
-            
+
             setTempUserData({
                 name: user.name || '',
                 email: user.email || '',
                 phone: user.phone || '',
             });
-            
+
             setError(null);
         } catch (err) {
             console.error('Error fetching user data:', err);
@@ -97,14 +102,14 @@ const Profile = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token')
-            
+
             if (!token) {
                 setError('Please login again.');
                 return;
             }
-            
+
             // PENTING: mengirim name bukan username sesuai dengan database Laravel
-            const response = await axios.put('http://127.0.0.1:8000/api/profile', 
+            const response = await axios.put('http://127.0.0.1:8000/api/profile',
                 {
                     name: tempUserData.name,
                     email: tempUserData.email,
@@ -119,7 +124,7 @@ const Profile = () => {
                     withCredentials: true
                 }
             );
-            
+
             // Update user data with response
             setUserData({
                 ...userData,
@@ -146,17 +151,17 @@ const Profile = () => {
             alert('Password baru dan konfirmasi password harus sama!');
             return;
         }
-        
+
         try {
-            const token = localStorage.getItem('token') || 
-                        sessionStorage.getItem('token') ||
-                        (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
-            
+            const token = localStorage.getItem('token') ||
+                sessionStorage.getItem('token') ||
+                (document.cookie.match(/token=([^;]+)/) ? document.cookie.match(/token=([^;]+)/)[1] : null);
+
             if (!token) {
                 setError('Token not found. Please login again.');
                 return;
             }
-            
+
             await axios.post('http://127.0.0.1:8000/api/profile/password',
                 {
                     currentPassword: passwordForm.currentPassword,
@@ -172,7 +177,7 @@ const Profile = () => {
                     withCredentials: true
                 }
             );
-            
+
             alertSuccess('Password berhasil diperbarui!');
             setShowPasswordModal(false);
             setPasswordForm({
@@ -213,7 +218,7 @@ const Profile = () => {
                     <div className="bg-white p-8 rounded-xl shadow-lg">
                         <h2 className="text-xl font-bold text-red-500 mb-4">Error</h2>
                         <p className="text-gray-700">{error}</p>
-                        <button 
+                        <button
                             onClick={fetchUserData}
                             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >

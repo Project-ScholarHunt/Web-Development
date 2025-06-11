@@ -110,6 +110,7 @@ const MyScholarshipsPage = () => {
     };
 
     useEffect(() => {
+        document.title = 'My Scholarships';
         fetchApplications();
 
         const interval = setInterval(() => {
@@ -180,8 +181,8 @@ const MyScholarshipsPage = () => {
                         <h2 className="text-xl font-semibold text-gray-700 mb-2">Session Expired</h2>
                         <p className="text-gray-600 mb-6">Your session has expired. Please log in again to continue.</p>
                         <Link
-                        to="/" 
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full">
+                            to="/"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full">
                             Log In
                         </Link>
                     </div>
@@ -329,21 +330,15 @@ const MyScholarshipsPage = () => {
                                             <div className="flex justify-between mt-2">
                                                 <div className={`text-center ${selectedApplication.progressStage >= 0 ? 'text-blue-600' : 'text-gray-400'}`}>
                                                     <div className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center ${selectedApplication.progressStage >= 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                                                        ✓
+                                                        <i className="ri-check-line"></i>
                                                     </div>
                                                     <p className="text-xs mt-1">Submitted</p>
                                                 </div>
                                                 <div className={`text-center ${selectedApplication.progressStage >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
                                                     <div className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center ${selectedApplication.progressStage >= 1 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                                                        👁️
+                                                        <i className="ri-survey-line"></i>
                                                     </div>
                                                     <p className="text-xs mt-1">Under Review</p>
-                                                </div>
-                                                <div className={`text-center ${selectedApplication.progressStage >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                                                    <div className={`w-6 h-6 mx-auto rounded-full flex items-center justify-center ${selectedApplication.progressStage >= 2 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                                                        💬
-                                                    </div>
-                                                    <p className="text-xs mt-1">Interview</p>
                                                 </div>
                                                 <div className={`text-center ${selectedApplication.progressStage >= 3
                                                     ? selectedApplication.status === 'Rejected'
@@ -357,7 +352,7 @@ const MyScholarshipsPage = () => {
                                                             : 'bg-green-100 text-green-600'
                                                         : 'bg-gray-100 text-gray-400'
                                                         }`}>
-                                                        {selectedApplication.status === 'Rejected' ? '✕' : '✓'}
+                                                        {selectedApplication.status === 'Rejected' ? <i className="ri-close-fill"></i> : <i class="ri-medal-line"></i>}
                                                     </div>
                                                     <p className="text-xs mt-1">Decision</p>
                                                 </div>
@@ -432,8 +427,6 @@ const MyScholarshipsPage = () => {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center">
-                                                            {/* Jika Anda memiliki ukuran file dari backend, tampilkan di sini */}
-                                                            {/* <span className="text-sm text-gray-500 mr-4">{doc.size}</span> */}
                                                             {doc.path && ( // Tampilkan tombol unduh hanya jika ada path
                                                                 <a href={doc.path} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -453,7 +446,7 @@ const MyScholarshipsPage = () => {
 
                                     <div className="flex flex-wrap justify-center gap-4 mt-8">
                                         <a
-                                            href={`/scholarships/${selectedApplication.scholarshipId}`}
+                                            href={`/scholarships?=${selectedApplication.scholarshipId}`}
                                             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full transition-colors"
                                         >
                                             View Scholarship Details

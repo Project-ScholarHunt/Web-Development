@@ -86,6 +86,9 @@ const ScholarshipsPage = () => {
     }, [scholarshipId, searchTerm]);
 
     useEffect(() => {
+            document.title = 'Scholarships';
+            window.scrollTo(0, 0);
+
         if (scholarships.length > 0) {
             fetchApplicationStatus(scholarships);
         }
@@ -137,7 +140,6 @@ const ScholarshipsPage = () => {
     if (scholarships.length === 0) {
         return (
             <div className="min-h-screen flex flex-col bg-gradient-to-r from-blue-400 to-teal-500">
-                <Navbar />
                 <div className="flex-grow container mx-auto px-6 py-[15vh] flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-md">
                         <h2 className="text-xl font-bold mb-2">No Scholarships Found</h2>
@@ -148,14 +150,12 @@ const ScholarshipsPage = () => {
                         )}
                     </div>
                 </div>
-                <Footer />
             </div>
         );
     }
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
-            <Navbar />
             <main className="flex-grow container mx-auto px-6 py-[5vh]">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">
                     {searchTerm ? `Search Results for "${searchTerm}"` : "Scholarships"}

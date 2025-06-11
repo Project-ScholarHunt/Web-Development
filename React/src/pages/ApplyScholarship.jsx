@@ -72,6 +72,7 @@ const Apply = () => {
   const scholarshipId = queryParams.get('scholarship_id');
 
   useEffect(() => {
+    document.title = 'Apply Scholarship';
     if (!scholarshipId) {
       setError('No scholarship selected. Please select a scholarship to apply for.');
     }
@@ -286,7 +287,7 @@ const Apply = () => {
                       </span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       name="nim"
                       value={formData.nim}
                       onChange={handleInputChange}
@@ -355,7 +356,7 @@ const Apply = () => {
                   <div>
                     <label className="block mb-1 font-medium">Postal Code</label>
                     <input
-                      type="text"
+                      type="number"
                       name="postal_code"
                       value={formData.postal_code}
                       onChange={handleInputChange}
