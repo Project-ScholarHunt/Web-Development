@@ -46,8 +46,8 @@ const AdminAnalytics = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true); // Set loading true di awal fetch
-            setError(null); // Reset error
+            setIsLoading(true);
+            setError(null);
             try {
                 const token = localStorage.getItem('token')
                 if (!token) {
@@ -62,15 +62,12 @@ const AdminAnalytics = () => {
                     }
                 };
 
-                // Fetch General Stats
                 const generalStatsResponse = await axios.get(`${API_URL}/general-stats`, config);
                 setGeneralStats(generalStatsResponse.data);
 
-                // Fetch Scholarships
                 const scholarshipsResponse = await axios.get(`${API_URL}/scholarships`, config);
                 setScholarships(scholarshipsResponse.data);
 
-                // Fetch Applicants
                 const applicantsResponse = await axios.get(`${API_URL}/applicants`, config);
                 setApplicants(applicantsResponse.data);
 

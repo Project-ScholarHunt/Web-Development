@@ -33,7 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
-
+    
+    Route::delete('/applicants/{applicantId}', [ApplicantsController::class, 'destroy']);
     Route::post('/apply', [ApplicantsController::class, 'store']);
     Route::get('/applicants/check/{scholarshipId}', [ApplicantsController::class, 'checkApplication']);
     Route::get('/my-applications', [ApplicantsController::class, 'myApplications']);

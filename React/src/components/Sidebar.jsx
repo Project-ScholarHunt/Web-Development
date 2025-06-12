@@ -7,10 +7,7 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
     const menuItems = [
         { id: 'scholarships', label: 'Scholarships', icon: 'ri-graduation-cap-line' },
         { id: 'analytics', label: 'Analytics', icon: 'ri-bar-chart-2-line' },
-        { id: 'users', label: 'Users', icon: 'ri-user-3-line' },
     ];
-
-    
 
     const handleLogout = useCallback(() => {
         localStorage.removeItem('token');
@@ -35,7 +32,6 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
                     <h2 className="text-xl font-bold">Admin Portal</h2>
                 </div>
 
-                {/* Main Navigation - flex-1 untuk mengambil space yang tersisa */}
                 <nav className="mt-2 md:mt-6 flex-1">
                     <ul className='px-2'>
                         {menuItems.map((item) => (
@@ -52,7 +48,6 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
                     </ul>
                 </nav>
 
-                {/* Logout Buttons di bagian bawah */}
                 <div className="p-2 border-t border-gray-200 space-y-2">
 
                     <button

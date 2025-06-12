@@ -612,7 +612,11 @@ const ScholarshipApplicants = ({ scholarshipId, onBack }) => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{applicant.email}</div>
+                                        <div className="text-sm text-gray-900">
+                                            {applicant.email.length > 5
+                                                ? applicant.email.slice(0, 5) + '...' + applicant.email.slice(applicant.email.indexOf('@'))
+                                                : applicant.email }
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{applicant.ipk || applicant.gpa}</div>

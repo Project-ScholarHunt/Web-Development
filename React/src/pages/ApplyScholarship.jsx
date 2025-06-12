@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
+import { alertSuccess } from '../lib/alert';
 
 // Data Provinsi dan Kota Indonesia
 const provincesAndCities = {
@@ -206,6 +207,7 @@ const Apply = () => {
       });
 
       setSuccess(response.data.message);
+      alertSuccess(response.data.message);
       setError(null);
       setTimeout(() => {
         navigate(`/scholarships?id=${scholarshipId}`, { state: { refresh: true } });
