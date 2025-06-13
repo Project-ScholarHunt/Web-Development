@@ -166,11 +166,17 @@ const AdminAnalytics = () => {
     const getScholarshipPerformanceData = () => {
         return scholarships.map(scholarship => {
             const relevantApplicants = applicants.filter(app => app.scholarship_id === scholarship.scholarship_id);
-            const approvedApplicants = relevantApplicants.filter(app => app.status === 'approved'); // Asumsi status ada di data applicant
-
+            const approvedApplicants = relevantApplicants.filter(
+                app => app.status && app.status.trim().toLowerCase() === 'accepted'
+            );
             const totalApplicants = relevantApplicants.length;
             const totalApproved = approvedApplicants.length;
-            const approvalRate = totalApplicants > 0 ? ((totalApproved / totalApplicants) * 100).toFixed(1) : 0;
+            const approvalRate = totalApplicants > 0 ? parseFloat(((totalApproved / totalApplicants) * 100).toFixed(1)) : 0;
+
+
+            console.log(`Scholarship: ${scholarship.scholarship_name}`);
+            console.log(`Total Applicants: ${totalApplicants}, Total Approved: ${totalApproved}, Approval Rate: ${approvalRate}`);
+            console.log(`Applicant Statuses:`, relevantApplicants.map(app => app.status));
 
             const totalGpa = relevantApplicants.reduce((sum, app) => sum + parseFloat(app.ipk), 0);
             const avgGpa = totalApplicants > 0 ? (totalGpa / totalApplicants).toFixed(2) : 'N/A';
@@ -291,7 +297,7 @@ const AdminAnalytics = () => {
                             </ChartCard>
                         </div>
                         <div className="lg:col-span-3">
-                            <ScholarshipPerformanceTable performanceData={getScholarshipPerformanceData()}/>
+                            <ScholarshipPerformanceTable performanceData={getScholarshipPerformanceData()} />
                         </div>
                     </div>
 
