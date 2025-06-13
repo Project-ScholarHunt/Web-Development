@@ -22,15 +22,19 @@ class SelectionsController extends Controller
         try {
             $applicant = Applicants::with('user', 'scholarships')->findOrFail($validated['applicant_id']);
             $selection = Selections::where('applicant_id', $validated['applicant_id'])->firstOrFail();
-
+            
             // Update the selection with the note
             $selection->update(['note' => $validated['note'] ?? '']);
+
+            $applicant = $selection->applicant;
+            $scholarshipName = $applicant->scholarships->first()->scholarship_name ?? 'Scholarship';
 
             // Send email
             Mail::to($applicant->user->email)->send(new ScholarshipStatusEmail(
                 $applicant,
                 $validated['status'],
-                $validated['note'] ?? ''
+                $validated['note'] ?? '',
+                $scholarshipName
             ));
 
             Log::info('Email sent to applicant ID: ' . $applicant->applicant_id . ' with status: ' . $validated['status']);

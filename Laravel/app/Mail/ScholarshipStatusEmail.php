@@ -16,15 +16,17 @@ class ScholarshipStatusEmail extends Mailable
     public $applicant;
     public $status;
     public $note;
+    public $scholarshipName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($applicant, $status, $note)
+    public function __construct($applicant, $status, $note, $scholarshipName)
     {
         $this->applicant = $applicant;
         $this->status = $status;
         $this->note = $note;
+        $this->scholarshipName = $scholarshipName;
     }
 
     public function build()
@@ -41,28 +43,28 @@ class ScholarshipStatusEmail extends Mailable
 
         switch ($status) {
             case 'accepted':
-                $subject = '🎉 Congratulations! Your Scholarship Application Has Been Accepted';
+                $subject = 'Congratulations! Your Scholarship Application Has Been Accepted';
                 $backgroundColor = '#e6f9ec';
                 $titleColor = '#2e7d32';
-                $message = "<p style='font-size: 16px;'>We are thrilled to inform you that your application for the <strong>{$scholarshipName}</strong> has been <strong>accepted</strong>! 🎉<br><br>Congratulations on this remarkable achievement. We look forward to your continued success!</p>";
-                $title = "🎉 You've Been Accepted!";
+                $message = "<p style='font-size: 16px;'>We are thrilled to inform you that your application for the <strong>{$this->scholarshipName}</strong> has been <strong>accepted</strong>! 🎉<br><br>Congratulations on this remarkable achievement. We look forward to your continued success!</p>";
+                $title = "You've Been Accepted!";
                 break;
 
             case 'rejected':
                 $subject = 'Scholarship Application Update - Application Not Selected';
                 $backgroundColor = '#ffe6e6';
                 $titleColor = '#c62828';
-                $message = "<p style='font-size: 16px;'>We regret to inform you that your application for the <strong>{$scholarshipName}</strong> has not been selected.<br><br>We sincerely appreciate the time and effort you put into your application and encourage you to apply again in the future.</p>";
+                $message = "<p style='font-size: 16px;'>We regret to inform you that your application for the <strong>{$this->scholarshipName}</strong> has been <strong>rejected</strong>.<br><br>We sincerely appreciate the time and effort you put into your application and encourage you to apply again in the future.</p>";
                 $title = "Application Result Notification";
                 break;
 
             case 'under review':
             default:
                 $subject = 'Scholarship Application Update - Under Review';
-                $backgroundColor = '#e3f2fd'; // light blue
-                $titleColor = '#1565c0';      // deep blue
-                $message = "<p style='font-size: 16px;'>Your application for <strong>{$scholarshipName}</strong> is currently under review.<br><br>We appreciate your patience while our team evaluates all submissions. We will notify you once there is an update.</p>";
-                $title = "📄 Application Under Review";
+                $backgroundColor = '#e3f2fd';
+                $titleColor = '#1565c0';
+                $message = "<p style='font-size: 16px;'>Your application for <strong>{$this->scholarshipName}</strong> is currently <strong>under review</strong>.<br><br>We appreciate your patience while our team evaluates all submissions. We will notify you once there is an update.</p>";
+                $title = "Application Under Review";
                 break;
         }
 
@@ -97,7 +99,7 @@ class ScholarshipStatusEmail extends Mailable
                 'applicant' => $this->applicant,
                 'status' => $this->status,
                 'note' => $this->note,
-                'scholarshipName' => $scholarshipName,
+                'scholarshipName' => $this->scholarshipName,
             ]);
     }
 
