@@ -1,33 +1,30 @@
 // Sidebar.jsx
 import React, { useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
     // Array menu items untuk dirender dinamis
     const menuItems = [
         { id: 'scholarships', label: 'Scholarships', icon: 'ri-graduation-cap-line' },
         { id: 'analytics', label: 'Analytics', icon: 'ri-bar-chart-2-line' },
-        { id: 'users', label: 'Users', icon: 'ri-user-3-line' },
     ];
 
-    // Function untuk handle logout - menyamakan dengan logic di Navbar
     const handleLogout = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
-        // Redirect ke halaman home
-        window.location.href = '/adminlogin';
+        
+        navigate('/admin-login');
     }, []);
 
-    // Function untuk handle logout and go to user login
     const handleLogoutToUserLogin = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
-        // Redirect ke halaman user login
-        window.location.href = '/';
+        navigate('/');
     }, []);
 
+    const navigate = useNavigate();
     return (
         <div>
             <aside className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full md:w-64 bg-white shadow-md md:h-full flex flex-col`}>
@@ -35,7 +32,6 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
                     <h2 className="text-xl font-bold">Admin Portal</h2>
                 </div>
 
-                {/* Main Navigation - flex-1 untuk mengambil space yang tersisa */}
                 <nav className="mt-2 md:mt-6 flex-1">
                     <ul className='px-2'>
                         {menuItems.map((item) => (
@@ -52,7 +48,6 @@ const Sidebar = ({ isMobileMenuOpen, currentSection, setCurrentSection }) => {
                     </ul>
                 </nav>
 
-                {/* Logout Buttons di bagian bawah */}
                 <div className="p-2 border-t border-gray-200 space-y-2">
 
                     <button

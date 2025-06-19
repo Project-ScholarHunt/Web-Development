@@ -23,6 +23,16 @@ ChartJS.register(
     Legend
 );
 
+import StatCard from '../components/StatCard';
+import ChartCard from '../components/ChartCard';
+import StatusDistributionPie from '../components/StatusDistributionPie';
+import ScholarshipPopularityBar from '../components/ScholarshipPopularityBar';
+import TopUniversitiesBar from '../components/TopUniversitiesBar';
+import StatusMetrics from '../components/StatusMetrics';
+import ApplicationTrendChart from '../components/ApplicationTrendChart';
+import ScholarshipPerformanceTable from './ScholarshipPerformanceTable';
+
+
 // API_URL sudah benar, menunjuk ke endpoint analytics admin di Laravel
 const API_URL = "http://127.0.0.1:8000/api/admin/analytics";
 
@@ -36,12 +46,12 @@ const AdminAnalytics = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true); // Set loading true di awal fetch
-            setError(null); // Reset error
+            setIsLoading(true);
+            setError(null);
             try {
                 const token = localStorage.getItem('token')
                 if (!token) {
-                    setError("Authentication token not found. Please login as Admin.");
+                    setError("Unauthrorized.");
                     setIsLoading(false);
                     return;
                 }
@@ -52,15 +62,12 @@ const AdminAnalytics = () => {
                     }
                 };
 
-                // Fetch General Stats
                 const generalStatsResponse = await axios.get(`${API_URL}/general-stats`, config);
                 setGeneralStats(generalStatsResponse.data);
 
-                // Fetch Scholarships
                 const scholarshipsResponse = await axios.get(`${API_URL}/scholarships`, config);
                 setScholarships(scholarshipsResponse.data);
 
-                // Fetch Applicants
                 const applicantsResponse = await axios.get(`${API_URL}/applicants`, config);
                 setApplicants(applicantsResponse.data);
 
@@ -91,41 +98,102 @@ const AdminAnalytics = () => {
         fetchData();
     }, []);
 
+    const getRegistrationTrendData = () => {
+        const countsByDate = applicants.reduce((acc, app) => {
+            const date = new Date(app.registration_date).toISOString().split('T')[0];
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+        }, {});
+
+        const sortedDates = Object.keys(countsByDate).sort((a, b) => new Date(a) - new Date(b));
+
+        return {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Jumlah Pendaftar per Hari',
+                data: sortedDates.map(date => countsByDate[date]),
+                fill: true,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }],
+        };
+    };
+
+
     const generalStatsData = generalStats || {
         totalApplicants: 0,
         activeScholarships: 0,
         pendingApplicants: 0,
-        approvedApplicants: 0, // Tambahkan ini
-        rejectedApplicants: 0, // Tambahkan ini
+        underReviewApplicants: 0,
+        approvedApplicants: 0,
+        rejectedApplicants: 0,
         approvalRate: 0,
         totalQuota: 0,
         quotaFillRate: 0
     };
 
-    // Fungsi untuk mendapatkan status distribution data
     const getStatusDistribution = () => {
-        // Gunakan data dari generalStatsData untuk konsistensi
         return {
-            labels: ['Approved', 'Pending', 'Rejected'],
+            labels: ['Pending', 'Under Review', 'Approved', 'Rejected'],
             datasets: [
                 {
                     data: [
-                        generalStatsData.approvedApplicants,
                         generalStatsData.pendingApplicants,
+                        generalStatsData.underReviewApplicants,
+                        generalStatsData.approvedApplicants,
                         generalStatsData.rejectedApplicants
                     ],
-                    backgroundColor: ['#10B981', '#FBBF24', '#EF4444'],
-                    borderColor: ['#064E3B', '#92400E', '#7F1D1D'],
+                    // Warna baru ditambahkan untuk 'Under Review' (Biru)
+                    backgroundColor: [
+                        '#FBBF24',
+                        '#3B82F6',
+                        '#10B981',
+                        '#EF4444'
+                    ],
+                    borderColor: [
+                        '#92400E',
+                        '#1E40AF',
+                        '#064E3B',
+                        '#7F1D1D'
+                    ],
                     borderWidth: 1,
                 },
             ],
         };
     };
 
-    // Fungsi untuk mendapatkan scholarship application data
+    const getScholarshipPerformanceData = () => {
+        return scholarships.map(scholarship => {
+            const relevantApplicants = applicants.filter(app => app.scholarship_id === scholarship.scholarship_id);
+            const approvedApplicants = relevantApplicants.filter(
+                app => app.status && app.status.trim().toLowerCase() === 'accepted'
+            );
+            const totalApplicants = relevantApplicants.length;
+            const totalApproved = approvedApplicants.length;
+            const approvalRate = totalApplicants > 0 ? parseFloat(((totalApproved / totalApplicants) * 100).toFixed(1)) : 0;
+
+
+            console.log(`Scholarship: ${scholarship.scholarship_name}`);
+            console.log(`Total Applicants: ${totalApplicants}, Total Approved: ${totalApproved}, Approval Rate: ${approvalRate}`);
+            console.log(`Applicant Statuses:`, relevantApplicants.map(app => app.status));
+
+            const totalGpa = relevantApplicants.reduce((sum, app) => sum + parseFloat(app.ipk), 0);
+            const avgGpa = totalApplicants > 0 ? (totalGpa / totalApplicants).toFixed(2) : 'N/A';
+
+            return {
+                id: scholarship.scholarship_id,
+                name: scholarship.scholarship_name,
+                totalApplicants,
+                totalApproved,
+                approvalRate,
+                avgGpa
+            };
+        });
+    };
+
     const getScholarshipApplicationData = () => {
         return {
-            // PASTIKAN 'scholarship_name' sesuai dengan field dari backend
             labels: scholarships.map(sch => sch.scholarship_name || 'Unnamed Scholarship'), // << Sesuaikan field name
             datasets: [
                 {
@@ -150,7 +218,7 @@ const AdminAnalytics = () => {
     };
 
     const getUniversityDistribution = () => {
-        const universities = [...new Set(applicants.map(app => app.university).filter(Boolean))]; // Filter out null/undefined universities
+        const universities = [...new Set(applicants.map(app => app.university).filter(Boolean))];
         const universityData = universities.map(uni => ({
             university: uni,
             count: applicants.filter(app => app.university === uni).length
@@ -174,15 +242,16 @@ const AdminAnalytics = () => {
     };
 
     const statusData = !isLoading && generalStats ? getStatusDistribution() : null;
-    const scholarshipData = !isLoading && scholarships.length > 0 && applicants.length >= 0 ? getScholarshipApplicationData() : null; // applicants bisa 0
+    const scholarshipData = !isLoading && scholarships.length > 0 ? getScholarshipApplicationData() : null;
     const universityData = !isLoading && applicants.length > 0 ? getUniversityDistribution() : null;
+    const registrationTrendData = !isLoading && applicants.length > 0 ? getRegistrationTrendData() : null;
 
     return (
         <div>
             {isLoading ?
                 null
                 :
-                <h1 className="text-2xl font-semibold">Analytics Dashboard</h1>
+                <h1 className="text-2xl mb-4 font-semibold">Analytics Dashboard</h1>
             }
 
 
@@ -198,196 +267,58 @@ const AdminAnalytics = () => {
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
                     <p className="mt-4 text-lg font-medium text-gray-600">Loading analytics data...</p>
                 </div>
-            ) : !error && generalStats ? ( // Hanya render jika tidak loading, tidak ada error, dan generalStats ada
+            ) : !error && generalStats ? (
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-700 mb-1">Total Applicants</h3>
-                            <div className="flex items-baseline">
-                                <span className="text-3xl font-bold text-indigo-600">{generalStatsData.totalApplicants}</span>
-                                <span className="ml-2 text-sm font-medium text-gray-500">applicants</span>
-                            </div>
-                            <div className="mt-2 flex items-center">
-                                <div className="flex items-center text-sm text-yellow-600"> {/* Warna disesuaikan untuk pending */}
-                                    <span className="mr-1.5"><i className="ri-time-line"></i></span> {/* Icon untuk pending */}
-                                    <span>{generalStatsData.pendingApplicants} pending review</span>
-                                </div>
-                            </div>
-                        </div>
+                        <StatCard
+                            title="Total Applicants"
+                            value={generalStatsData.totalApplicants}
+                            subtitle={`${generalStatsData.pendingApplicants} pending review`}
+                            icon="ri-group-line"
+                        />
+                        <StatCard
+                            title="Active Scholarships"
+                            value={generalStatsData.activeScholarships}
+                            subtitle={`${generalStatsData.totalQuota} total quota`}
+                            icon="ri-award-line"
+                        />
+                        <StatCard
+                            title="Approval Rate"
+                            value={`${generalStatsData.approvalRate}%`}
+                            subtitle={`${generalStatsData.quotaFillRate}% quota filled`}
+                            icon="ri-check-double-line"
+                        />
+                    </div>
 
-                        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-700 mb-1">Active Scholarships</h3>
-                            <div className="flex items-baseline">
-                                <span className="text-3xl font-bold text-indigo-600">{generalStatsData.activeScholarships}</span>
-                                <span className="ml-2 text-sm font-medium text-gray-500">scholarships</span>
-                            </div>
-                            <div className="mt-2 flex items-center">
-                                <div className="flex items-center text-sm text-blue-600">
-                                    <span className="mr-1.5"><i className="ri-award-line"></i></span> {/* Icon untuk kuota */}
-                                    <span>{generalStatsData.totalQuota} total quota</span>
-                                </div>
-                            </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                        <div className="lg:col-span-2">
+                            <ChartCard title="Application Status Distribution">
+                                {statusData && <StatusDistributionPie data={statusData} />}
+                            </ChartCard>
                         </div>
-
-                        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-700 mb-1">Approval Rate</h3>
-                            <div className="flex items-baseline">
-                                <span className="text-3xl font-bold text-indigo-600">{generalStatsData.approvalRate}%</span>
-                            </div>
-                            <div className="mt-2 flex items-center">
-                                <div className="flex items-center text-sm text-green-600"> {/* Warna disesuaikan untuk quota filled */}
-                                    <span className="mr-1.5"><i className="ri-pie-chart-2-line"></i></span> {/* Icon untuk quota filled */}
-                                    <span>{generalStatsData.quotaFillRate}% quota filled</span>
-                                </div>
-                            </div>
+                        <div className="lg:col-span-3">
+                            <ScholarshipPerformanceTable performanceData={getScholarshipPerformanceData()} />
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg p-10 shadow-lg border max-h-[300px] border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Application Status Distribution</h2>
-                        </div>
-                        <div className="h-30 md:h-50 flex justify-center"> {/* Tinggi disesuaikan */}
-                            <div className="w-full max-w-sm md:max-w-md"> {/* Lebar disesuaikan */}
-                                {statusData && <Pie data={statusData} options={{ maintainAspectRatio: false }} />}
-                            </div>
-                        </div>
-                    </div>
+                    <ChartCard title="Daily Application Trends">
+                        {registrationTrendData && <ApplicationTrendChart data={registrationTrendData} />}
+                    </ChartCard>
 
-                    {/* Detailed Status Metrics & Application by Scholarship in first row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Detailed Status Metrics */}
-                        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Status Metrics</h2>
-                            <div className="space-y-5">
-                                <div>
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-base font-medium text-gray-700">Pending Applications</span>
-                                        <span className="text-base font-medium text-gray-700">
-                                            {generalStatsData.pendingApplicants} / {generalStatsData.totalApplicants}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div
-                                            className="bg-yellow-400 h-2.5 rounded-full"
-                                            style={{ width: `${generalStatsData.totalApplicants > 0 ? (generalStatsData.pendingApplicants / generalStatsData.totalApplicants) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-base font-medium text-gray-700">Approved Applications</span>
-                                        <span className="text-base font-medium text-gray-700">
-                                            {/* Menggunakan generalStatsData untuk approved count */}
-                                            {generalStatsData.approvedApplicants} / {generalStatsData.totalApplicants}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div
-                                            className="bg-green-500 h-2.5 rounded-full"
-                                            style={{ width: `${generalStatsData.totalApplicants > 0 ? (generalStatsData.approvedApplicants / generalStatsData.totalApplicants) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-base font-medium text-gray-700">Rejected Applications</span>
-                                        <span className="text-base font-medium text-gray-700">
-                                            {/* Menggunakan generalStatsData untuk rejected count */}
-                                            {generalStatsData.rejectedApplicants} / {generalStatsData.totalApplicants}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div
-                                            className="bg-red-500 h-2.5 rounded-full"
-                                            style={{ width: `${generalStatsData.totalApplicants > 0 ? (generalStatsData.rejectedApplicants / generalStatsData.totalApplicants) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                {/* Quota Fill Rate Progress Bar (Optional, bisa digabung atau dipisah) */}
-                                <div>
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-base font-medium text-gray-700">Quota Utilization</span>
-                                        <span className="text-base font-medium text-gray-700">
-                                            {generalStatsData.approvedApplicants} / {generalStatsData.totalQuota} {/* Menggunakan approved untuk kuota terisi */}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div
-                                            className="bg-blue-500 h-2.5 rounded-full"
-                                            style={{ width: `${generalStatsData.totalQuota > 0 ? (generalStatsData.approvedApplicants / generalStatsData.totalQuota) * 100 : 0}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Application by Scholarship (Now in grid) */}
-                        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Applications by Scholarship</h2>
-                            <div className="h-80 md:h-96"> {/* Tinggi disesuaikan */}
-                                {scholarshipData && (
-                                    <Bar
-                                        data={scholarshipData}
-                                        options={{
-                                            maintainAspectRatio: false,
-                                            responsive: true,
-                                            scales: {
-                                                y: {
-                                                    beginAtZero: true,
-                                                    title: {
-                                                        display: true,
-                                                        text: 'Count'
-                                                    }
-                                                },
-                                                x: {
-                                                    title: {
-                                                        display: true,
-                                                        text: 'Scholarships'
-                                                    }
-                                                }
-                                            }
-                                        }}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Top 5 Universities (Now Full Width at Bottom) */}
-                    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-4">Top 5 Universities by Applicants</h2>
-                        <div className="h-80 md:h-96"> {/* Tinggi disesuaikan */}
-                            {universityData && (
-                                <Bar
-                                    data={universityData}
-                                    options={{
-                                        maintainAspectRatio: false,
-                                        responsive: true,
-                                        indexAxis: 'y', // Membuatnya jadi horizontal bar chart
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                title: {
-                                                    display: true,
-                                                    text: 'Number of Applicants'
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            )}
-                        </div>
+                        <ChartCard title="Applications by Scholarship">
+                            {scholarshipData && <ScholarshipPopularityBar data={scholarshipData} />}
+                        </ChartCard>
+                        <ChartCard title="Top 5 Universities by Applicants">
+                            {universityData && <TopUniversitiesBar data={universityData} />}
+                        </ChartCard>
                     </div>
                 </div>
-            ) : !isLoading && error ? ( // Jika tidak loading tapi ada error (setelah fetch)
+            ) : !isLoading && error ? (
                 <div className="text-center my-10">
                     <p className="text-lg text-red-600">Could not load analytics data.</p>
                 </div>
-            ) : null} {/* Kasus lain (mis. data belum ada tapi tidak error juga) */}
+            ) : null}
         </div>
     );
 };

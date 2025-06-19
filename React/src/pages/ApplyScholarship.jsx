@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/navbar';
 import Footer from '../components/footer';
 import axios from 'axios';
+import { alertSuccess } from '../lib/alert';
 
 // Data Provinsi dan Kota Indonesia
 const provincesAndCities = {
@@ -72,6 +73,7 @@ const Apply = () => {
   const scholarshipId = queryParams.get('scholarship_id');
 
   useEffect(() => {
+    document.title = 'Apply Scholarship';
     if (!scholarshipId) {
       setError('No scholarship selected. Please select a scholarship to apply for.');
     }
@@ -205,6 +207,7 @@ const Apply = () => {
       });
 
       setSuccess(response.data.message);
+      alertSuccess(response.data.message);
       setError(null);
       setTimeout(() => {
         navigate(`/scholarships?id=${scholarshipId}`, { state: { refresh: true } });
@@ -286,7 +289,7 @@ const Apply = () => {
                       </span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       name="nim"
                       value={formData.nim}
                       onChange={handleInputChange}
@@ -355,7 +358,7 @@ const Apply = () => {
                   <div>
                     <label className="block mb-1 font-medium">Postal Code</label>
                     <input
-                      type="text"
+                      type="number"
                       name="postal_code"
                       value={formData.postal_code}
                       onChange={handleInputChange}

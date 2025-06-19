@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { alertConfirm } from '../lib/alert';
 
 const CrudScholarshipTable = ({ items, handleEdit, handleDelete, isLoading, onViewApplicants  }) => {
+    
     if (items.length === 0 && !isLoading) {
         return (
             <div className="bg-white p-6 rounded shadow-md text-center">

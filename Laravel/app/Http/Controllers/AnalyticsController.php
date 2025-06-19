@@ -30,17 +30,19 @@ class AnalyticsController extends Controller
         // Active Scholarships (berdasarkan time_limit, karena tidak ada status di scholarships)
         $activeScholarships = Scholarships::where('time_limit', '>', Carbon::now())->count();
 
-        // --- PERBAIKAN DI SINI UNTUK STATUS APPLICANTS --- (Komentar asli dari kode Anda)
         // Hitung pelamar berdasarkan status di tabel 'selections'
         $pendingApplicants = Applicants::whereHas('selection', function ($query) {
             $query->where('status', 'pending');
         })->count();
 
         $approvedApplicantsCount = Applicants::whereHas('selection', function ($query) {
-            $query->where('status', 'approved');
+            $query->where('status', 'accepted');
         })->count();
 
-        // Hitung rejected applicants juga dari tabel selections
+        $underReviewApplicantsCount = Applicants::whereHas('selection', function ($query) {
+            $query->where('status', 'under review');
+        })->count();
+
         $rejectedApplicantsCount = Applicants::whereHas('selection', function ($query) {
             $query->where('status', 'rejected');
         })->count();
@@ -56,8 +58,9 @@ class AnalyticsController extends Controller
             'totalApplicants' => $totalApplicants,
             'activeScholarships' => $activeScholarships,
             'pendingApplicants' => $pendingApplicants,
-            'approvedApplicants' => $approvedApplicantsCount, // Tambahkan ini agar bisa digunakan di frontend (Komentar asli dari kode Anda)
-            'rejectedApplicants' => $rejectedApplicantsCount, // Tambahkan ini agar bisa digunakan di frontend (Komentar asli dari kode Anda)
+            'underReviewApplicants' => $underReviewApplicantsCount,
+            'approvedApplicants' => $approvedApplicantsCount,
+            'rejectedApplicants' => $rejectedApplicantsCount,
             'approvalRate' => $approvalRate,
             'totalQuota' => $totalQuota,
             'quotaFillRate' => $quotaFillRate,
@@ -76,11 +79,11 @@ class AnalyticsController extends Controller
 
         // Map data untuk menyesuaikan format frontend jika diperlukan,
         // atau tambahkan status dari selection ke objek applicant
-        $formattedApplicants = $applicants->map(function($applicant) {
+        $formattedApplicants = $applicants->map(function ($applicant) {
             $applicantArray = $applicant->toArray();
             // Tambahkan status dari selection ke objek applicant jika selection ada
             $applicantArray['status'] = $applicant->selection ? $applicant->selection->status : 'no_status'; // Default jika tidak ada selection
-            
+
             // Sertakan juga nama beasiswa secara langsung jika sering diakses di frontend
             // Ini opsional, tergantung kebutuhan. Jika sudah ada di $applicant->scholarship, mungkin tidak perlu.
             // if ($applicant->scholarship) {

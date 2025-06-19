@@ -16,15 +16,17 @@ class ScholarshipStatusEmail extends Mailable
     public $applicant;
     public $status;
     public $note;
+    public $scholarshipName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($applicant, $status, $note)
+    public function __construct($applicant, $status, $note, $scholarshipName)
     {
         $this->applicant = $applicant;
         $this->status = $status;
         $this->note = $note;
+        $this->scholarshipName = $scholarshipName;
     }
 
     public function build()
@@ -37,12 +39,34 @@ class ScholarshipStatusEmail extends Mailable
 
         $scholarshipName = $this->applicant->scholarships->name ?? 'Scholarship';
 
-        $backgroundColor = $isAccepted ? '#e6f9ec' : '#ffe6e6';
-        $titleColor = $isAccepted ? '#2e7d32' : '#c62828';
+        $status = strtolower($this->status);
 
-        $message = $isAccepted
-            ? "<p style='font-size: 16px;'>We are thrilled to inform you that your application for the <strong>{$scholarshipName}</strong> has been <strong>accepted</strong>! 🎉<br><br>Congratulations on this remarkable achievement. We look forward to your continued success!</p>"
-            : "<p style='font-size: 16px;'>We regret to inform you that your application for the <strong>{$scholarshipName}</strong> has not been selected.<br><br>We sincerely appreciate the time and effort you put into your application and encourage you to apply again in the future.</p>";
+        switch ($status) {
+            case 'accepted':
+                $subject = 'Congratulations! Your Scholarship Application Has Been Accepted';
+                $backgroundColor = '#e6f9ec';
+                $titleColor = '#2e7d32';
+                $message = "<p style='font-size: 16px;'>We are thrilled to inform you that your application for the <strong>{$this->scholarshipName}</strong> has been <strong>accepted</strong>! 🎉<br><br>Congratulations on this remarkable achievement. We look forward to your continued success!</p>";
+                $title = "You've Been Accepted!";
+                break;
+
+            case 'rejected':
+                $subject = 'Scholarship Application Update - Application Not Selected';
+                $backgroundColor = '#ffe6e6';
+                $titleColor = '#c62828';
+                $message = "<p style='font-size: 16px;'>We regret to inform you that your application for the <strong>{$this->scholarshipName}</strong> has been <strong>rejected</strong>.<br><br>We sincerely appreciate the time and effort you put into your application and encourage you to apply again in the future.</p>";
+                $title = "Application Result Notification";
+                break;
+
+            case 'under review':
+            default:
+                $subject = 'Scholarship Application Update - Under Review';
+                $backgroundColor = '#e3f2fd';
+                $titleColor = '#1565c0';
+                $message = "<p style='font-size: 16px;'>Your application for <strong>{$this->scholarshipName}</strong> is currently <strong>under review</strong>.<br><br>We appreciate your patience while our team evaluates all submissions. We will notify you once there is an update.</p>";
+                $title = "Application Under Review";
+                break;
+        }
 
         $noteSection = !empty($this->note)
             ? "<div style='margin-top: 20px;'>
@@ -57,9 +81,7 @@ class ScholarshipStatusEmail extends Mailable
                 <div style='max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);'>
                     <div style='text-align: center;'>
                         <img src='https://i.imgur.com/vzeC6GR.png' alt='Logo' style='width: 100px; margin-bottom: 20px;' />
-                        <h1 style='color: {$titleColor}; font-size: 24px; margin-bottom: 20px;'>
-                            " . ($isAccepted ? "🎉 You've Been Accepted!" : "Application Result Notification") . "
-                        </h1>
+                        <h1 style='color: {$titleColor}; font-size: 24px; margin-bottom: 20px;'>{$title}</h1>
                     </div>
                     <p style='font-size: 16px;'>Dear {$this->applicant->fullname},</p>
                     {$message}
@@ -77,7 +99,7 @@ class ScholarshipStatusEmail extends Mailable
                 'applicant' => $this->applicant,
                 'status' => $this->status,
                 'note' => $this->note,
-                'scholarshipName' => $scholarshipName,
+                'scholarshipName' => $this->scholarshipName,
             ]);
     }
 

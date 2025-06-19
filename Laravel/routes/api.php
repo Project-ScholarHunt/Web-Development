@@ -10,7 +10,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApplicantsController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SelectionsController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\File;
 
 Route::prefix('users')->group(function () {
     Route::post('/register', [UserController::class, 'registerUser']);
@@ -31,7 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/password', [ProfileController::class, 'updatePassword']);
-
+    
+    Route::delete('/applicants/{applicantId}', [ApplicantsController::class, 'destroy']);
     Route::post('/apply', [ApplicantsController::class, 'store']);
     Route::get('/applicants/check/{scholarshipId}', [ApplicantsController::class, 'checkApplication']);
     Route::get('/my-applications', [ApplicantsController::class, 'myApplications']);
@@ -81,3 +84,34 @@ Route::prefix('scholarships')->group(function () {
 
 Route::post('/verify-otp/user', [UserController::class, 'verifyUserOtp']);
 Route::post('/verify-otp/admin', [UserController::class, 'verifyAdminOtp']);
+
+Route::get('/documents/{filename}', function ($filename) {
+    $path = 'documents/' . $filename;
+
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404, 'Document not found');
+    }
+
+    $fullPath = Storage::disk('public')->path($path);
+
+    return response()->file($fullPath, [
+        'Content-Disposition' => 'inline; filename="' . $filename . '"'
+    ]);
+})->name('documents.show');
+
+Route::middleware('auth:sanctum')->get('/secure-documents/{filename}', function ($filename) {
+    $path = 'documents/' . $filename;
+
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404, 'Document not found');
+    }
+
+    $file = Storage::disk('public')->get($path);
+    $fullPath = Storage::disk('public')->path($path);
+    $mimeType = File::mimeType($fullPath);
+
+    return Response::make($file, 200, [
+        'Content-Type' => $mimeType,
+        'Content-Disposition' => 'inline; filename="' . $filename . '"'
+    ]);
+})->name('secure-documents.show');

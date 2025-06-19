@@ -17,6 +17,7 @@ const Login = () => {
 
   // **Animation on mount**
   useEffect(() => {
+    document.title = 'Login';
     setIsVisible(true)
   }, [])
 
